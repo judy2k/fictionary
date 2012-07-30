@@ -95,3 +95,5 @@ Packaging
     in this.
 Auto-Refresh
     Automatically recreate the data file if the source files change.
+Data-File Optimisation
+    Generate the markov chains in parallel, so files don't have to be re-read.

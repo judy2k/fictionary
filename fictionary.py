@@ -124,12 +124,31 @@ class RandomCounter(Counter):
         else:
             return random.choice(self.most_common())[0]
 
+
 class DataFile(object):
+    '''
+    A data file containing pickled markov chains and a dict of known words.
+    '''
     def __init__(self, path, filesets=ISPELL_FILESETS, refresh=False):
         self.open_data_file(path, filesets, refresh)
 
     def __getitem__(self, key):
         return self._shelf[key]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        ''' Close the open data-filehandle.
+        '''
+        if self._shelf:
+            try:
+                self._shelf.close()
+            except Exception: pass
+        return False
 
     def generate_word_list(self, files):
         '''
@@ -207,10 +226,10 @@ def main(argv=sys.argv[1:]):
         logging.basicConfig()
         LOG.setLevel(logging.DEBUG)
 
-    shelf = DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh)
-    model = shelf[args.dictionary]
-    for _ in range(args.count):
-        print ''.join(model.random_sequence(args.min_length, args.max_length))
+    with DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh) as shelf:
+        model = shelf[args.dictionary]
+        for _ in range(args.count):
+            print ''.join(model.random_sequence(args.min_length, args.max_length))
 
 
 if __name__ == '__main__':
