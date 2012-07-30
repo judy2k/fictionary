@@ -124,50 +124,55 @@ class RandomCounter(Counter):
         else:
             return random.choice(self.most_common())[0]
 
+class DataFile(object):
+    def __init__(self, path, filesets=ISPELL_FILESETS, refresh=False):
+        self.open_data_file(path, filesets, refresh)
 
-def generate_word_list(files):
-    '''
-    Read through one or more wordlist files and generate a Markov object
-    representing the words.
+    def __getitem__(self, key):
+        return self._shelf[key]
 
-    ``files`` should be a sequence of file paths. Each file will be opened, and
-    each line should contain a single word.  Words beginning with a capital
-    letter or containing an apostrophe will be rejected. Each word is fed into
-    a Markov object as a sequence of characters.
-    '''
-    result = Markov()
-    for path in files:
-        for line in open(path):
-            if not line[0].isupper() and "'" not in line:
-                result.feed(line.strip())
-    return result
+    def generate_word_list(self, files):
+        '''
+        Read through one or more wordlist files and generate a Markov object
+        representing the words.
 
-
-def open_data_file(data_file_path, filesets, force_refresh):
-    '''
-    Open a fictionary data file, creating a new one if necessary, or if
-    ``force_refresh`` is True.
-    '''
-    if force_refresh or not exists(data_file_path):
-        return generate_data_file(data_file_path, filesets)
-    else:
-        return shelve.open(data_file_path, protocol=2, flag='w')
+        ``files`` should be a sequence of file paths. Each file will be opened, and
+        each line should contain a single word.  Words beginning with a capital
+        letter or containing an apostrophe will be rejected. Each word is fed into
+        a Markov object as a sequence of characters.
+        '''
+        result = Markov()
+        for path in files:
+            for line in open(path):
+                if not line[0].isupper() and "'" not in line:
+                    result.feed(line.strip())
+        return result
 
 
-def generate_data_file(data_file_path, filesets):
-    '''
-    Create a new fictionary data file at ``data_file_path`` from the files
-    listed in ``filesets``
-    '''
-    containing_dir = basename(data_file_path)
-    if not exists(containing_dir):
-        makedirs(containing_dir)
-    shelf = shelve.open(data_file_path, protocol=2, flag='n')
-    for dictionary in ['all', 'british', 'american']:
-        print "Generating '%s' dictionary... " % dictionary,
-        shelf[dictionary] = generate_word_list(filesets[dictionary])
-        print 'Done.'
-    return shelf
+    def open_data_file(self, data_file_path, filesets, force_refresh):
+        '''
+        Open a fictionary data file, creating a new one if necessary, or if
+        ``force_refresh`` is True.
+        '''
+        if force_refresh or not exists(data_file_path):
+            self.generate_data_file(data_file_path, filesets)
+        else:
+            self._shelf = shelve.open(data_file_path, protocol=2, flag='w')
+
+
+    def generate_data_file(self, data_file_path, filesets):
+        '''
+        Create a new fictionary data file at ``data_file_path`` from the files
+        listed in ``filesets``
+        '''
+        containing_dir = basename(data_file_path)
+        if not exists(containing_dir):
+            makedirs(containing_dir)
+        self._shelf = shelve.open(data_file_path, protocol=2, flag='n')
+        for dictionary in ['all', 'british', 'american']:
+            print "Generating '%s' dictionary... " % dictionary,
+            self._shelf[dictionary] = generate_word_list(filesets[dictionary])
+            print 'Done.'
 
 
 def main(argv=sys.argv[1:]):
@@ -202,8 +207,7 @@ def main(argv=sys.argv[1:]):
         logging.basicConfig()
         LOG.setLevel(logging.DEBUG)
 
-    shelf = open_data_file(join(DATA_FILE_ROOT, 'dictionary.dat'),
-                           ISPELL_FILESETS, args.refresh)
+    shelf = DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh)
     model = shelf[args.dictionary]
     for _ in range(args.count):
         print ''.join(model.random_sequence(args.min_length, args.max_length))

@@ -93,3 +93,5 @@ Packaging
     I need to write a setup.py and possibly a standalone installer. Mainly
     for my own benefit -- I don't really expect anyone to be interested
     in this.
+Auto-Refresh
+    Automatically recreate the data file if the source files change.
