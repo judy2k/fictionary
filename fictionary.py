@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-import logging
 
-log = logging.getLogger(__name__)
+''' A random word generator, following standard English word rules.
+'''
+
+import logging
 
 import argparse
 from collections import Counter
@@ -12,8 +14,15 @@ import random
 import shelve
 import sys
 
+# Where to save the generated data file:
 DATA_FILE_ROOT = './data'
+
+# Where to load the source ispell wordlists:
 SRC_DATA_FILE_ROOT = '.'
+
+
+log = logging.getLogger(__name__)
+
 ISPELL_FILESETS = {
     'all': glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')),
     'british': glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/english.*')) +
@@ -24,6 +33,8 @@ ISPELL_FILESETS = {
 
 
 class Markov(object):
+    ''' A markov chain, with 2-token tuples as keys. Values are implemented as Counter objects, providing 
+    '''
     def __init__(self):
         self.data = {}
 
@@ -43,28 +54,39 @@ class Markov(object):
         return self.data[key]
 
     def next(self, key):
+        ''' Obtain a weighted, random token, transitioning from the current state (key).
+        
+        Given the provided key (current state), provide a randomly-generated
+        state using the model's weighted collection of next states.
+        '''
         log.debug('Key: %r, Counters: %r', key, self[key])
         return random_choice(self[key])
 
     def random_sequence(self, min_length=4):
         while True:
-            result = self._random_sequence()
+            result = list(self._random_sequence())
             if len(result) >= min_length:
                 return result
     
     def _random_sequence(self):
         key = (None, None)
-        result = []
         while True:
             next = self.next(key)
             if not next:
-                return result
+                return
             else:
-                result.append(next)
+                yield next
                 key = (key[1], next)
 
 
 def pick(counter, i):
+    ''' Pick a key from Counter, using the key's count as a weighting.
+    
+    This function sorts counter contents in order of count, and uses each
+    count as a range providing a weighting for the associated value. The
+    parameter `i` provides an index into one of the ranges, and that count's
+    associated key is returned.
+    '''
     total = 0
     for val, count in counter.most_common():
         total += count
@@ -74,6 +96,13 @@ def pick(counter, i):
 
 
 def random_choice(counter, weighted=True):
+    ''' Obtain a randomly-chosen key from the provided counter.
+    
+    If weighted is True, the key returned is weighted by its associated count,
+    so keys with a high count value should be chosen more frequently. If
+    weighted is False, the keys in counter are treated as a flat list, and
+    each has the same probability of being chosen.
+    '''
     if weighted:
         return pick(counter, random.randint(0, sum(counter.values())-1))
     else:
@@ -81,19 +110,28 @@ def random_choice(counter, weighted=True):
 
 
 def generate_word_list(files):
+    ''' Read through one or more wordlist files and generate a Markov object representing the words.
+    
+    ``files`` should be a sequence of file paths. Each file will be opened, and
+    each line should contain a single word.  Words beginning with a capital
+    letter or containing an apostrophe will be rejected. Each word is fed into
+    a Markov object as a sequence of characters.
+    '''
     result = Markov()
     for path in files:
         for line in open(path):
             if not line[0].isupper() and "'" not in line:
                 result.feed(line.strip())
     return result
-
+    
 
 def main(argv=sys.argv[1:]):
     ap = argparse.ArgumentParser()
     ap.add_argument('-v', '--verbose', action='store_true', help="Be verbose.")
     ap.add_argument('-c', '--count', type=int, default=1, help="The number of words to generate.")
     ap.add_argument('-m', '--min-length', type=int, default=4, metavar="MIN", help="Only generate words of MIN length or longer.")
+    ap.add_argument('--refresh', action='store_true', help="Re-create the data file from the word-lists.")
+    ap.add_argument('-d', '--dictionary', default='british', help="The dictionary rules to follow")
 
     args = ap.parse_args(argv)
 
@@ -102,22 +140,23 @@ def main(argv=sys.argv[1:]):
         log.setLevel(logging.DEBUG)
 
     data_file_path = join(DATA_FILE_ROOT, 'dictionary.dat')
-    if exists(data_file_path):
-        shelf = shelve.open(data_file_path, protocol=2, flag='w')
-    else:
-        print 'Generating initial dictionary... ',
+    if not exists(data_file_path) or args.refresh:
         try:
-            makedirs(DATA_FILE_ROOT)
-            shelf = shelve.open(data_file_path, protocol=2)
-            m = generate_word_list(ISPELL_FILESETS['british'])
-            shelf['british'] = m
+            if not exists(DATA_FILE_ROOT):
+                makedirs(DATA_FILE_ROOT)
+            shelf = shelve.open(data_file_path, protocol=2, flag='n')
+            for dictionary in ['all', 'british', 'american']:
+                print "Generating '%s' dictionary... " % dictionary,
+                shelf[dictionary] = generate_word_list(ISPELL_FILESETS[dictionary])
+                print 'Done.'
         finally:
             try:
                 shelf.sync()
             except Exception: pass
-        print 'Done.'
+    else:
+        shelf = shelve.open(data_file_path, protocol=2, flag='w')
 
-    model = shelf['british']
+    model = shelf[args.dictionary]
 
     for _ in range(args.count):
         print ''.join(model.random_sequence(args.min_length))
