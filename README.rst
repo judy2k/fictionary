@@ -83,8 +83,6 @@ To Do
 
 The following is my to-do list for this project:
 
-Max Length
-    Reject words over a certain threshold.
 Existing Words
     Reject words that are real.
 Word Generation Rollback
