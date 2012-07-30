@@ -81,9 +81,6 @@ Max Length
     Reject words over a certain threshold.
 Existing Words
     Reject words that are real.
-Language Choice
-    Currently, fictionary conforms to the rules of British English. I'm going
-    to add American English.
 Word Generation Rollback
     Rejecting words that are too long or short is reasonably expensive. I may
     refactor this to rollback and remake choices until a valid 'word' is

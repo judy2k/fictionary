@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 ''' A random word generator, following standard English word rules.
 '''
@@ -70,12 +71,14 @@ class Markov(object):
         return self[key].random_choice()
 
     def random_sequence(self, min_length=4):
+        ''' Generate a random sequence from the Markov model, filtering out any resulting sequences which are shorter than min_length (which defaults to 4). '''
         while True:
-            result = list(self._random_sequence())
+            result = list(self.random_sequence_generator())
             if len(result) >= min_length:
                 return result
     
-    def _random_sequence(self):
+    def random_sequence_generator(self):
+        ''' A generator to provide a sequence from the Markov model. '''
         key = self.INITIAL_STATE
         while True:
             next = self.next(key)
