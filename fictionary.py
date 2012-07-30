@@ -163,8 +163,11 @@ class DataFile(object):
         result = Markov()
         for path in files:
             for line in open(path):
-                if not line[0].isupper() and "'" not in line:
-                    result.feed(line.strip())
+                word = line.strip()
+                if not line[0].isupper() and "'" not in word:
+                    self._shelf['wordlist'].add(word)
+                    result.feed(word)
+        self._shelf.sync()
         return result
 
 
@@ -188,9 +191,10 @@ class DataFile(object):
         if not exists(containing_dir):
             makedirs(containing_dir)
         self._shelf = shelve.open(data_file_path, protocol=2, flag='n')
+        self._shelf['wordlist'] = set()
         for dictionary in ['all', 'british', 'american']:
             print "Generating '%s' dictionary... " % dictionary,
-            self._shelf[dictionary] = generate_word_list(filesets[dictionary])
+            self._shelf[dictionary] = self.generate_word_list(filesets[dictionary])
             print 'Done.'
 
 
