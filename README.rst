@@ -86,8 +86,8 @@ To Do
 
 The following is my to-do list for this project:
 
-Existing Words
-    Reject words that are real.
+Allow Valid Words
+    Add a flag to turn off 'real-word' validation.
 Word Generation Rollback
     Rejecting words that are too long or short is reasonably expensive. I may
     refactor this to rollback and remake choices until a valid 'word' is
@@ -100,3 +100,5 @@ Auto-Refresh
     Automatically recreate the data file if the source files change.
 Data-File Optimisation
     Generate the markov chains in parallel, so files don't have to be re-read.
+Optimize Long Words
+    Make word-generator bail out as soon as max-length is encountered.

@@ -63,7 +63,7 @@ class Markov(object):
     def __getitem__(self, key):
         return self.data[key]
 
-    def random_sequence(self, min_length=4, max_length=None):
+    def random_sequence(self, min_length=4, max_length=None, filter=None):
         ''' Generate a random sequence from the Markov model.
 
         Any resulting sequences which are shorter than min_length (which
@@ -72,7 +72,8 @@ class Markov(object):
         for _ in range(1000):
             result = list(self.random_sequence_generator())
             if (len(result) >= min_length
-                and (max_length is None or len(result) <= max_length)):
+                and (max_length is None or len(result) <= max_length)
+                and filter(result)):
                 LOG.debug('Result: %s (%d <= %d <= %r)', result, min_length, len(result), max_length)
                 return result
         else:
@@ -179,7 +180,7 @@ class DataFile(object):
         if force_refresh or not exists(data_file_path):
             self.generate_data_file(data_file_path, filesets)
         else:
-            self._shelf = shelve.open(data_file_path, protocol=2, flag='w')
+            self._shelf = shelve.open(data_file_path, protocol=2, flag='w', writeback=True)
 
 
     def generate_data_file(self, data_file_path, filesets):
@@ -190,50 +191,55 @@ class DataFile(object):
         containing_dir = basename(data_file_path)
         if not exists(containing_dir):
             makedirs(containing_dir)
-        self._shelf = shelve.open(data_file_path, protocol=2, flag='n')
+        self._shelf = shelve.open(data_file_path, protocol=2, flag='n', writeback=True)
         self._shelf['wordlist'] = set()
         for dictionary in ['all', 'british', 'american']:
             print "Generating '%s' dictionary... " % dictionary,
             self._shelf[dictionary] = self.generate_word_list(filesets[dictionary])
             print 'Done.'
 
+    def is_real_word(self, word):
+        return word in self._shelf['wordlist']
+
 
 def main(argv=sys.argv[1:]):
     """
     Entry-function for running fictionary as a command-line program.
     """
-    parser = argparse.ArgumentParser(description=__doc__.strip())
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help="Be verbose.")
-    parser.add_argument('-c', '--count', type=int, default=1,
-                        help="The number of words to generate.")
-    parser.add_argument('-m', '--min-length', type=int, default=4,
-                        metavar="LENGTH",
-                        help="Only generate words of LENGTH chars or longer.")
-    parser.add_argument('-x', '--max-length', type=int, default=None,
-                        metavar="LENGTH",
-                        help="Only generate words of LENGTH chars or shorter.")
-    parser.add_argument('--refresh', action='store_true',
-                        help="Re-create the data file from the word-lists.")
-    parser.add_argument('-d', '--dictionary', default='british',
-                        help="The dictionary rules to follow: american,"
-                        "british, or all")
+    try:
+        parser = argparse.ArgumentParser(description=__doc__.strip())
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            help="Be verbose.")
+        parser.add_argument('-c', '--count', type=int, default=1,
+                            help="The number of words to generate.")
+        parser.add_argument('-m', '--min-length', type=int, default=4,
+                            metavar="LENGTH",
+                            help="Only generate words of LENGTH chars or longer.")
+        parser.add_argument('-x', '--max-length', type=int, default=None,
+                            metavar="LENGTH",
+                            help="Only generate words of LENGTH chars or shorter.")
+        parser.add_argument('--refresh', action='store_true',
+                            help="Re-create the data file from the word-lists.")
+        parser.add_argument('-d', '--dictionary', default='british',
+                            help="The dictionary rules to follow: american,"
+                            "british, or all")
 
-    args = parser.parse_args(argv)
+        args = parser.parse_args(argv)
 
-    if args.max_length is not None:
-        if args.min_length > args.max_length:
-            print >> sys.stderr, "Words cannot have a max-length shorter than their min-length!"
-            sys.exit(-1)
+        if args.max_length is not None:
+            if args.min_length > args.max_length:
+                print >> sys.stderr, "Words cannot have a max-length shorter than their min-length!"
+                sys.exit(-1)
 
-    if args.verbose:
-        logging.basicConfig()
-        LOG.setLevel(logging.DEBUG)
+        if args.verbose:
+            logging.basicConfig()
+            LOG.setLevel(logging.DEBUG)
 
-    with DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh) as shelf:
-        model = shelf[args.dictionary]
-        for _ in range(args.count):
-            print ''.join(model.random_sequence(args.min_length, args.max_length))
+        with DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh) as shelf:
+            model = shelf[args.dictionary]
+            for _ in range(args.count):
+                print ''.join(model.random_sequence(args.min_length, args.max_length, lambda w: not shelf.is_real_word(''.join(w))))
+    except KeyboardInterrupt: pass
 
 
 if __name__ == '__main__':
