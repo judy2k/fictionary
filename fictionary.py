@@ -63,16 +63,21 @@ class Markov(object):
     def __getitem__(self, key):
         return self.data[key]
 
-    def random_sequence(self, min_length=4):
+    def random_sequence(self, min_length=4, max_length=None):
         ''' Generate a random sequence from the Markov model.
 
         Any resulting sequences which are shorter than min_length (which
         defaults to 4) are filtered out.
         '''
-        while True:
+        for _ in range(1000):
             result = list(self.random_sequence_generator())
-            if len(result) >= min_length:
+            if (len(result) >= min_length
+                and (max_length is None or len(result) <= max_length)):
+                LOG.debug('Result: %s (%d <= %d <= %r)', result, min_length, len(result), max_length)
                 return result
+        else:
+            raise Exception("Couldn't find a valid word in 1000 iterations - "
+                            "it looks like something is wrong!")
 
     def random_sequence_generator(self):
         ''' A generator to provide a sequence from the Markov model. '''
@@ -175,8 +180,11 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-c', '--count', type=int, default=1,
                         help="The number of words to generate.")
     parser.add_argument('-m', '--min-length', type=int, default=4,
-                        metavar="MIN",
-                        help="Only generate words of MIN length or longer.")
+                        metavar="LENGTH",
+                        help="Only generate words of LENGTH chars or longer.")
+    parser.add_argument('-x', '--max-length', type=int, default=None,
+                        metavar="LENGTH",
+                        help="Only generate words of LENGTH chars or shorter.")
     parser.add_argument('--refresh', action='store_true',
                         help="Re-create the data file from the word-lists.")
     parser.add_argument('-d', '--dictionary', default='british',
@@ -184,6 +192,11 @@ def main(argv=sys.argv[1:]):
                         "british, or all")
 
     args = parser.parse_args(argv)
+
+    if args.max_length is not None:
+        if args.min_length > args.max_length:
+            print >> sys.stderr, "Words cannot have a max-length shorter than their min-length!"
+            sys.exit(-1)
 
     if args.verbose:
         logging.basicConfig()
@@ -193,7 +206,7 @@ def main(argv=sys.argv[1:]):
                            ISPELL_FILESETS, args.refresh)
     model = shelf[args.dictionary]
     for _ in range(args.count):
-        print ''.join(model.random_sequence(args.min_length))
+        print ''.join(model.random_sequence(args.min_length, args.max_length))
 
 
 if __name__ == '__main__':
