@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-''' A random word generator, following standard English word rules.
+''' A made-up word factory, following standard English word rules.
 '''
 
 import sys
@@ -169,7 +169,7 @@ def main(argv=sys.argv[1:]):
     """
     Entry-function for running fictionary as a command-line program.
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__.strip())
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Be verbose.")
     parser.add_argument('-c', '--count', type=int, default=1,

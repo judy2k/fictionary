@@ -11,7 +11,9 @@ python installed, just clone this repository, and run
 ``fictionary.py --help``. This should print out something like the
 following::
 
-    usage: fictionary.py [-h] [-v] [-c COUNT] [-m MIN]
+    usage: fictionary.py [-h] [-v] [-c COUNT] [-m MIN] [--refresh] [-d DICTIONARY]
+
+    A made-up word factory, following standard English word rules.
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -20,6 +22,10 @@ following::
                             The number of words to generate.
       -m MIN, --min-length MIN
                             Only generate words of MIN length or longer.
+      --refresh             Re-create the data file from the word-lists.
+      -d DICTIONARY, --dictionary DICTIONARY
+                            The dictionary rules to follow: american,british, or
+                            all
 
 Why???
 ------
@@ -85,9 +91,6 @@ Word Generation Rollback
     Rejecting words that are too long or short is reasonably expensive. I may
     refactor this to rollback and remake choices until a valid 'word' is
     reached. Or I may find something better to do with my time.
-Better Code
-    The code was written in my lunch hour. It's not awful, but it could be
-    better, and better commented.
 Packaging
     I need to write a setup.py and possibly a standalone installer. Mainly
     for my own benefit -- I don't really expect anyone to be interested
