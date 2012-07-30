@@ -41,9 +41,11 @@ class Markov(object):
     ''' A markov chain, with 2-token tuples as keys. Values are implemented as Counter objects, providing 
     '''
     def __init__(self):
+        self.INITIAL_STATE = (None, None)
         self.data = {}
 
     def feed(self, tokens):
+        ''' Add a sequence of tokens for addition to the Markov model. '''
         terms = [None, None] + list(tokens) + [None]
         for index in range(len(terms)-2):
             pair = tuple(terms[index:index+2])
@@ -74,7 +76,7 @@ class Markov(object):
                 return result
     
     def _random_sequence(self):
-        key = (None, None)
+        key = self.INITIAL_STATE
         while True:
             next = self.next(key)
             if not next:
