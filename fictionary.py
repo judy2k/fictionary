@@ -46,7 +46,13 @@ class Markov(object):
         log.debug('Key: %r, Counters: %r', key, self[key])
         return random_choice(self[key])
 
-    def random_sequence(self):
+    def random_sequence(self, min_length=4):
+        while True:
+            result = self._random_sequence()
+            if len(result) >= min_length:
+                return result
+    
+    def _random_sequence(self):
         key = (None, None)
         result = []
         while True:
@@ -87,6 +93,7 @@ def main(argv=sys.argv[1:]):
     ap = argparse.ArgumentParser()
     ap.add_argument('-v', '--verbose', action='store_true', help="Be verbose.")
     ap.add_argument('-c', '--count', type=int, default=1, help="The number of words to generate.")
+    ap.add_argument('-m', '--min-length', type=int, default=4, metavar="MIN", help="Only generate words of MIN length or longer.")
 
     args = ap.parse_args(argv)
 
@@ -100,20 +107,20 @@ def main(argv=sys.argv[1:]):
     else:
         print 'Generating initial dictionary... ',
         try:
+            makedirs(DATA_FILE_ROOT)
             shelf = shelve.open(data_file_path, protocol=2)
             m = generate_word_list(ISPELL_FILESETS['british'])
-            makedirs(DATA_FILE_ROOT)
             shelf['british'] = m
         finally:
             try:
-                shelf.close()
+                shelf.sync()
             except Exception: pass
         print 'Done.'
 
     model = shelf['british']
 
     for _ in range(args.count):
-        print ''.join(model.random_sequence())
+        print ''.join(model.random_sequence(args.min_length))
 
 
 if __name__ == '__main__':
