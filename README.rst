@@ -11,7 +11,8 @@ python installed, just clone this repository, and run
 ``fictionary.py --help``. This should print out something like the
 following::
 
-    usage: fictionary.py [-h] [-v] [-c COUNT] [-m MIN] [--refresh] [-d DICTIONARY]
+    usage: fictionary.py [-h] [-v] [-c COUNT] [-m LENGTH] [-x LENGTH] [--refresh]
+                         [-d DICTIONARY]
 
     A made-up word factory, following standard English word rules.
 
@@ -20,8 +21,10 @@ following::
       -v, --verbose         Be verbose.
       -c COUNT, --count COUNT
                             The number of words to generate.
-      -m MIN, --min-length MIN
-                            Only generate words of MIN length or longer.
+      -m LENGTH, --min-length LENGTH
+                            Only generate words of LENGTH chars or longer.
+      -x LENGTH, --max-length LENGTH
+                            Only generate words of LENGTH chars or shorter.
       --refresh             Re-create the data file from the word-lists.
       -d DICTIONARY, --dictionary DICTIONARY
                             The dictionary rules to follow: american,british, or
