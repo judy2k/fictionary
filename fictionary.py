@@ -3,16 +3,21 @@
 ''' A random word generator, following standard English word rules.
 '''
 
-import logging
+import sys
+
+try:
+    from collections import Counter
+except ImportError:
+    print >>sys.stderr, "You need Python >= 2.7 to run fictionary."
+    sys.exit(-1)
 
 import argparse
-from collections import Counter
 from glob import glob
+import logging
 from os import makedirs
 from os.path import join, exists
 import random
 import shelve
-import sys
 
 # Where to save the generated data file:
 DATA_FILE_ROOT = './data'
@@ -47,7 +52,7 @@ class Markov(object):
             if options is not None:
                 options.update([nxt])
             else:
-                options = Counter([nxt])
+                options = RandomCounter([nxt])
                 self.data[pair] = options
 
     def __getitem__(self, key):
@@ -60,7 +65,7 @@ class Markov(object):
         state using the model's weighted collection of next states.
         '''
         log.debug('Key: %r, Counters: %r', key, self[key])
-        return random_choice(self[key])
+        return self[key].random_choice()
 
     def random_sequence(self, min_length=4):
         while True:
@@ -79,34 +84,34 @@ class Markov(object):
                 key = (key[1], next)
 
 
-def pick(counter, i):
-    ''' Pick a key from Counter, using the key's count as a weighting.
-    
-    This function sorts counter contents in order of count, and uses each
-    count as a range providing a weighting for the associated value. The
-    parameter `i` provides an index into one of the ranges, and that count's
-    associated key is returned.
-    '''
-    total = 0
-    for val, count in counter.most_common():
-        total += count
-        if i < total:
-            return val
-    raise IndexError('Value of i (%d) was greater than max index (%d)' % (i, sum(counter.values())-1))
+class RandomCounter(Counter):
+    def pick(self, i):
+        ''' Pick a key from Counter, using the key's count as a weighting.
+        
+        This function sorts counter contents in order of count, and uses each
+        count as a range providing a weighting for the associated value. The
+        parameter `i` provides an index into one of the ranges, and that count's
+        associated key is returned.
+        '''
+        total = 0
+        for val, count in self.most_common():
+            total += count
+            if i < total:
+                return val
+        raise IndexError('Value of i (%d) was greater than max index (%d)' % (i, sum(self.values())-1))
 
-
-def random_choice(counter, weighted=True):
-    ''' Obtain a randomly-chosen key from the provided counter.
-    
-    If weighted is True, the key returned is weighted by its associated count,
-    so keys with a high count value should be chosen more frequently. If
-    weighted is False, the keys in counter are treated as a flat list, and
-    each has the same probability of being chosen.
-    '''
-    if weighted:
-        return pick(counter, random.randint(0, sum(counter.values())-1))
-    else:
-        return random.choice(counter.most_common())[0]
+    def random_choice(self, weighted=True):
+        ''' Obtain a randomly-chosen key from the counter.
+        
+        If weighted is True, the key returned is weighted by its associated count,
+        so keys with a high count value should be chosen more frequently. If
+        weighted is False, the keys in counter are treated as a flat list, and
+        each has the same probability of being chosen.
+        '''
+        if weighted:
+            return self.pick(random.randint(0, sum(self.values())-1))
+        else:
+            return random.choice(self.most_common())[0]
 
 
 def generate_word_list(files):
@@ -131,7 +136,7 @@ def main(argv=sys.argv[1:]):
     ap.add_argument('-c', '--count', type=int, default=1, help="The number of words to generate.")
     ap.add_argument('-m', '--min-length', type=int, default=4, metavar="MIN", help="Only generate words of MIN length or longer.")
     ap.add_argument('--refresh', action='store_true', help="Re-create the data file from the word-lists.")
-    ap.add_argument('-d', '--dictionary', default='british', help="The dictionary rules to follow")
+    ap.add_argument('-d', '--dictionary', default='british', help="The dictionary rules to follow: american, british, or all")
 
     args = ap.parse_args(argv)
 
