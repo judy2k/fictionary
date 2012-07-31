@@ -194,9 +194,10 @@ class DataFile(object):
         self._shelf = shelve.open(data_file_path, protocol=2, flag='n', writeback=True)
         self._shelf['wordlist'] = set()
         for dictionary in ['all', 'british', 'american']:
-            print "Generating '%s' dictionary... " % dictionary,
+            print >> sys.stderr, "Generating '%s' dictionary... " % dictionary,
+            sys.stderr.flush()
             self._shelf[dictionary] = self.generate_word_list(filesets[dictionary])
-            print 'Done.'
+            print >> sys.stderr, 'Done.'
 
     def is_real_word(self, word):
         return word in self._shelf['wordlist']
