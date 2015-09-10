@@ -19,6 +19,11 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
     ],
+    packages=['fictionary'],
+    package_data={
+        'fictionary': ['ispell_wordlist/*']
+    },
+
     keywords="words dictionary fictionary",
     entry_points={
         'console_scripts': [

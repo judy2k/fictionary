@@ -1,0 +1,2 @@
+include *.rst
+include fictionary/ispell_wordlist/*
