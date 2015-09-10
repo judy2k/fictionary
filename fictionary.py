@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-''' A made-up word factory, following standard English word rules.
-'''
+""" A made-up word factory, following standard English word rules.
+"""
 
 import sys
 
@@ -16,7 +16,7 @@ import argparse
 from glob import glob
 import logging
 from os import makedirs
-from os.path import join, exists, basename
+from os.path import join, exists, dirname
 import random
 import shelve
 
@@ -39,16 +39,16 @@ ISPELL_FILESETS = {
 
 
 class Markov(object):
-    ''' A markov chain, with 2-token tuples as keys.
+    """ A markov chain, with 2-token tuples as keys.
 
     Values are implemented as Counter objects, providing a weighting for each
     successive token.
-    '''
+    """
     def __init__(self):
         self.data = {}
 
     def feed(self, tokens):
-        ''' Add a sequence of tokens for addition to the Markov model. '''
+        """ Add a sequence of tokens for addition to the Markov model. """
         terms = [None, None] + list(tokens) + [None]
         for index in range(len(terms) - 2):
             pair = tuple(terms[index:index + 2])
@@ -64,11 +64,11 @@ class Markov(object):
         return self.data[key]
 
     def random_sequence(self, min_length=4, max_length=None, filter=None):
-        ''' Generate a random sequence from the Markov model.
+        """ Generate a random sequence from the Markov model.
 
         Any resulting sequences which are shorter than min_length (which
         defaults to 4) are filtered out.
-        '''
+        """
         for _ in range(1000):
             result = list(self.random_sequence_generator())
             if (len(result) >= min_length
@@ -81,7 +81,7 @@ class Markov(object):
                             "it looks like something is wrong!")
 
     def random_sequence_generator(self):
-        ''' A generator to provide a sequence from the Markov model. '''
+        """ A generator to provide a sequence from the Markov model. """
         key = (None, None)
         while True:
             next_token = self[key].random_choice()
@@ -93,17 +93,17 @@ class Markov(object):
 
 
 class RandomCounter(Counter):
-    ''' A Counter with extra methods for choosing random keys from the
+    """ A Counter with extra methods for choosing random keys from the
     collection, accounting for weightings provided by the counter values.
-    '''
+    """
     def pick(self, i):
-        ''' Pick a key from Counter, using the key's count as a weighting.
+        """ Pick a key from Counter, using the key's count as a weighting.
 
         This function sorts counter contents in order of count, and uses each
         count as a range providing a weighting for the associated value. The
         parameter `i` provides an index into one of the ranges, and that
         count's associated key is returned.
-        '''
+        """
         total = 0
         for val, count in self.most_common():
             total += count
@@ -113,13 +113,13 @@ class RandomCounter(Counter):
                          % (i, sum(self.values()) - 1))
 
     def random_choice(self, weighted=True):
-        ''' Obtain a randomly-chosen key from the counter.
+        """ Obtain a randomly-chosen key from the counter.
 
         If weighted is True, the key returned is weighted by its associated
         count, so keys with a high count value should be chosen more
         frequently.  If weighted is False, the keys in counter are treated as
         a flat list, and each has the same probability of being chosen.
-        '''
+        """
         if weighted:
             return self.pick(random.randint(0, sum(self.values()) - 1))
         else:
@@ -127,9 +127,10 @@ class RandomCounter(Counter):
 
 
 class DataFile(object):
-    '''
+    """
     A data file containing pickled markov chains and a dict of known words.
-    '''
+    """
+    
     def __init__(self, path, filesets=ISPELL_FILESETS, refresh=False):
         self.open_data_file(path, filesets, refresh)
 
@@ -143,8 +144,9 @@ class DataFile(object):
         self.close()
 
     def close(self):
-        ''' Close the open data-filehandle.
-        '''
+        """
+        Close the open data-filehandle.
+        """
         if self._shelf:
             try:
                 self._shelf.close()
@@ -152,7 +154,7 @@ class DataFile(object):
         return False
 
     def generate_word_list(self, files):
-        '''
+        """
         Read through one or more wordlist files and generate a Markov object
         representing the words.
 
@@ -160,7 +162,7 @@ class DataFile(object):
         each line should contain a single word.  Words beginning with a capital
         letter or containing an apostrophe will be rejected. Each word is fed into
         a Markov object as a sequence of characters.
-        '''
+        """
         result = Markov()
         for path in files:
             for line in open(path):
@@ -171,24 +173,22 @@ class DataFile(object):
         self._shelf.sync()
         return result
 
-
     def open_data_file(self, data_file_path, filesets, force_refresh):
-        '''
+        """
         Open a fictionary data file, creating a new one if necessary, or if
         ``force_refresh`` is True.
-        '''
+        """
         if force_refresh or not exists(data_file_path):
             self.generate_data_file(data_file_path, filesets)
         else:
             self._shelf = shelve.open(data_file_path, protocol=2, flag='w', writeback=True)
 
-
     def generate_data_file(self, data_file_path, filesets):
-        '''
+        """
         Create a new fictionary data file at ``data_file_path`` from the files
         listed in ``filesets``
-        '''
-        containing_dir = basename(data_file_path)
+        """
+        containing_dir = dirname(data_file_path)
         if not exists(containing_dir):
             makedirs(containing_dir)
         self._shelf = shelve.open(data_file_path, protocol=2, flag='n', writeback=True)
