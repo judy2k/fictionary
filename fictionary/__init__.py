@@ -24,10 +24,12 @@ import shelve
 DATA_FILE_ROOT = './data'
 
 # Where to load the source ispell wordlists:
-SRC_DATA_FILE_ROOT = '.'
+SRC_DATA_FILE_ROOT = dirname(__file__)
 
 
 LOG = logging.getLogger(__name__)
+
+print join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')
 
 ISPELL_FILESETS = {
     'all': glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')),
