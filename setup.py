@@ -23,6 +23,7 @@ setup(
     package_data={
         'fictionary': ['ispell_wordlist/*']
     },
+    install_requires=["click>=5.0,<6.0"],
 
     keywords="words dictionary fictionary",
     entry_points={

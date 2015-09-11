@@ -5,6 +5,7 @@
 """
 
 import sys
+import click
 
 try:
     from collections import Counter
@@ -20,16 +21,16 @@ from os.path import join, exists, dirname
 import random
 import shelve
 
+APP_NAME = "fictionary"
+
 # Where to save the generated data file:
-DATA_FILE_ROOT = './data'
+DATA_FILE_ROOT = click.get_app_dir(APP_NAME)
 
 # Where to load the source ispell wordlists:
 SRC_DATA_FILE_ROOT = dirname(__file__)
 
 
 LOG = logging.getLogger(__name__)
-
-print join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')
 
 ISPELL_FILESETS = {
     'all': glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')),
@@ -132,7 +133,7 @@ class DataFile(object):
     """
     A data file containing pickled markov chains and a dict of known words.
     """
-    
+
     def __init__(self, path, filesets=ISPELL_FILESETS, refresh=False):
         self.open_data_file(path, filesets, refresh)
 
