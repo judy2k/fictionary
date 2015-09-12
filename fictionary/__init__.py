@@ -21,6 +21,7 @@ from os.path import join, exists, dirname
 import random
 import shelve
 
+
 APP_NAME = "fictionary"
 
 # Where to save the generated data file:
@@ -72,11 +73,16 @@ class Markov(object):
         Any resulting sequences which are shorter than min_length (which
         defaults to 4) are filtered out.
         """
+        if filter is None:
+            filter = lambda x: x
+
         for _ in range(1000):
             result = list(self.random_sequence_generator())
-            if (len(result) >= min_length
+            if (
+                len(result) >= min_length
                 and (max_length is None or len(result) <= max_length)
-                and filter(result)):
+                and filter(result)
+            ):
                 LOG.debug('Result: %s (%d <= %d <= %r)', result, min_length, len(result), max_length)
                 return result
         else:
@@ -148,13 +154,10 @@ class DataFile(object):
 
     def close(self):
         """
-        Close the open data-filehandle.
+        Close the open data filehandle.
         """
         if self._shelf:
-            try:
-                self._shelf.close()
-            except Exception: pass
-        return False
+            self._shelf.close()
 
     def generate_word_list(self, files):
         """

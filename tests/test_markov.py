@@ -1,5 +1,9 @@
-def func(x):
-    return x + 1
 
-def test_answer():
-    assert func(3) == 4
+import fictionary
+
+
+def test_predictable():
+    markov = fictionary.Markov()
+    markov.feed("abcde")
+    assert ''.join(markov.random_sequence(5, 5)) == "abcde"
+
