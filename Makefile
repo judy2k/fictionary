@@ -4,7 +4,7 @@ build:
 	python setup.py sdist bdist
 
 clean:
-	rm -rf fictionary.egg-info build
+	rm -rf fictionary.egg-info build .eggs
 
 distclean: clean
 	rm -rf dist data
