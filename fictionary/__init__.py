@@ -4,22 +4,17 @@
 """ A made-up word factory, following standard English word rules.
 """
 
-import sys
-import click
-
-try:
-    from collections import Counter
-except ImportError:
-    print >> sys.stderr, "You need Python >= 2.7 to run fictionary."
-    sys.exit(-1)
-
 import argparse
+from collections import Counter
 from glob import glob
 import logging
 from os import makedirs
 from os.path import join, exists, dirname
 import random
 import shelve
+import sys
+
+import click
 
 
 APP_NAME = "fictionary"
@@ -142,6 +137,7 @@ class DataFile(object):
 
     def __init__(self, path, filesets=ISPELL_FILESETS, refresh=False):
         self.open_data_file(path, filesets, refresh)
+        self.path = path
 
     def __getitem__(self, key):
         return self._shelf[key]
