@@ -1,6 +1,7 @@
 *.py[co]
 
 # Packages
+.eggs
 *.egg
 *.egg-info
 dist
@@ -18,6 +19,7 @@ pip-log.txt
 
 # Unit test / coverage reports
 .coverage
+htmlcov
 .tox
 
 #Translations

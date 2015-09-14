@@ -4,22 +4,18 @@
 """ A made-up word factory, following standard English word rules.
 """
 
-import sys
-import click
-
-try:
-    from collections import Counter
-except ImportError:
-    print >> sys.stderr, "You need Python >= 2.7 to run fictionary."
-    sys.exit(-1)
-
 import argparse
+from collections import Counter
 from glob import glob
 import logging
 from os import makedirs
 from os.path import join, exists, dirname
 import random
 import shelve
+import sys
+
+import click
+
 
 APP_NAME = "fictionary"
 
@@ -72,11 +68,16 @@ class Markov(object):
         Any resulting sequences which are shorter than min_length (which
         defaults to 4) are filtered out.
         """
+        if filter is None:
+            filter = lambda x: x
+
         for _ in range(1000):
             result = list(self.random_sequence_generator())
-            if (len(result) >= min_length
+            if (
+                len(result) >= min_length
                 and (max_length is None or len(result) <= max_length)
-                and filter(result)):
+                and filter(result)
+            ):
                 LOG.debug('Result: %s (%d <= %d <= %r)', result, min_length, len(result), max_length)
                 return result
         else:
@@ -136,6 +137,7 @@ class DataFile(object):
 
     def __init__(self, path, filesets=ISPELL_FILESETS, refresh=False):
         self.open_data_file(path, filesets, refresh)
+        self.path = path
 
     def __getitem__(self, key):
         return self._shelf[key]
@@ -148,13 +150,10 @@ class DataFile(object):
 
     def close(self):
         """
-        Close the open data-filehandle.
+        Close the open data filehandle.
         """
         if self._shelf:
-            try:
-                self._shelf.close()
-            except Exception: pass
-        return False
+            self._shelf.close()
 
     def generate_word_list(self, files):
         """
@@ -233,11 +232,10 @@ def main(argv=sys.argv[1:]):
         if args.max_length is not None:
             if args.min_length > args.max_length:
                 print >> sys.stderr, "Words cannot have a max-length shorter than their min-length!"
-                sys.exit(-1)
+                return -1
 
         if args.verbose:
-            logging.basicConfig()
-            LOG.setLevel(logging.DEBUG)
+            LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
 
         with DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh) as shelf:
             model = shelf[args.dictionary]
@@ -245,6 +243,7 @@ def main(argv=sys.argv[1:]):
                 print ''.join(model.random_sequence(args.min_length, args.max_length, lambda w: not shelf.is_real_word(''.join(w))))
     except KeyboardInterrupt: pass
 
+    return 0
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
