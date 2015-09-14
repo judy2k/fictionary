@@ -232,11 +232,10 @@ def main(argv=sys.argv[1:]):
         if args.max_length is not None:
             if args.min_length > args.max_length:
                 print >> sys.stderr, "Words cannot have a max-length shorter than their min-length!"
-                sys.exit(-1)
+                return -1
 
         if args.verbose:
-            logging.basicConfig()
-            LOG.setLevel(logging.DEBUG)
+            LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
 
         with DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh) as shelf:
             model = shelf[args.dictionary]
@@ -244,6 +243,7 @@ def main(argv=sys.argv[1:]):
                 print ''.join(model.random_sequence(args.min_length, args.max_length, lambda w: not shelf.is_real_word(''.join(w))))
     except KeyboardInterrupt: pass
 
+    return 0
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

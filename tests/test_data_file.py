@@ -1,5 +1,5 @@
 from glob import glob
-from os.path import dirname, join
+from os.path import dirname, join, exists
 import random
 import re
 
@@ -17,6 +17,7 @@ ISPELL_FILESETS = {
     'american': glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/english.*')) +
     glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/american.*')),
 }
+
 
 @pytest.fixture
 def datafile(tmpdir):
@@ -45,10 +46,24 @@ def test_open_existing_file(datafile):
     df = fictionary.DataFile(path)
     assert before == df['british'][('a', 'b')]
 
+
 def test_is_real_word(datafile):
     assert datafile.is_real_word('xxxxxx') == False
     assert datafile.is_real_word('beclamour') == True
 
+
 def test_create_intermediate_dirs(tmpdir):
-    path = tmpdir.join('nonexistant/fictionary_temporary.data')
-    return fictionary.DataFile(str(path), filesets=ISPELL_FILESETS)
+    with mock.patch('fictionary.makedirs') as makedir_mock, \
+            mock.patch('fictionary.shelve'):
+
+        path = tmpdir.join('nonexistant/fictionary_temporary.data')
+        fictionary.DataFile(str(path), filesets=ISPELL_FILESETS)
+        makedir_mock.assert_called_once_with(path.dirname)
+
+
+def test_refresh_true(datafile):
+    datafile.close()
+    assert exists(datafile.path)
+    with mock.patch.object(fictionary.DataFile, 'generate_data_file') as gdf:
+        fictionary.DataFile(datafile.path, filesets=ISPELL_FILESETS, refresh=True)
+        gdf.assert_called_once_with(datafile.path, ISPELL_FILESETS)
