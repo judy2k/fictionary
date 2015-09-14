@@ -25,14 +25,14 @@ def datafile(tmpdir):
 
 
 def test_context(datafile):
-    datafile._shelf = mock.Mock()
-    with datafile as ctx:
-        assert datafile is ctx
-    assert datafile._shelf.close.called_once_with()
+    with mock.patch.object(datafile, '_shelf') as shelf:
+        with datafile as ctx:
+            assert datafile is ctx
+        assert shelf.close.called_once_with()
 
 
 def test_getitem(datafile):
-    assert datafile['american']['x','u'].keys() == ['a']
+    assert datafile['american'][('x', 'u')].keys() == ['a']
 
 
 def test_open_existing_file(datafile):
@@ -48,3 +48,7 @@ def test_open_existing_file(datafile):
 def test_is_real_word(datafile):
     assert datafile.is_real_word('xxxxxx') == False
     assert datafile.is_real_word('beclamour') == True
+
+def test_create_intermediate_dirs(tmpdir):
+    path = tmpdir.join('nonexistant/fictionary_temporary.data')
+    return fictionary.DataFile(str(path), filesets=ISPELL_FILESETS)
