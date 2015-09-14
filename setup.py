@@ -11,6 +11,8 @@ REQUIREMENTS = [
 
 TEST_REQUIREMENTS = [
     "pytest>=2.7.2",
+    "pbr<1.7.0",        # There appears to be a problem with tox & pbr==1.7.0
+    "mock>=1.3.0",
 ]
 
 
