@@ -33,7 +33,7 @@ def test_context(datafile):
 
 
 def test_getitem(datafile):
-    assert datafile['american'][('x', 'u')].keys() == ['a']
+    assert list(datafile['american'][('x', 'u')].keys()) == ['a']
 
 
 def test_open_existing_file(datafile):

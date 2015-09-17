@@ -1,3 +1,5 @@
+import logging
+
 import mock
 import pytest
 
@@ -29,3 +31,13 @@ def test_min_below_max():
 def test_keyboard_interrupt():
     with mock.patch('fictionary.DataFile', side_effect=KeyboardInterrupt) as df:
         assert fictionary.main([]) == 0
+
+
+def test_verbosity():
+    with mock.patch('fictionary.LOG') as fictionary_logger:
+        fictionary.main([])
+        fictionary_logger.setLevel.assert_called_once_with(logging.WARNING)
+
+    with mock.patch('fictionary.LOG') as fictionary_logger:
+        fictionary.main(['-v'])
+        fictionary_logger.setLevel.assert_called_once_with(logging.DEBUG)

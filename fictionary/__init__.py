@@ -4,6 +4,8 @@
 """ A made-up word factory, following standard English word rules.
 """
 
+from __future__ import print_function, unicode_literals
+
 import argparse
 from collections import Counter
 from glob import glob
@@ -196,10 +198,10 @@ class DataFile(object):
         self._shelf = shelve.open(data_file_path, protocol=2, flag='n', writeback=True)
         self._shelf['wordlist'] = set()
         for dictionary in ['all', 'british', 'american']:
-            print >> sys.stderr, "Generating '%s' dictionary... " % dictionary,
+            print("Generating '%s' dictionary... " % dictionary, file=sys.stderr)
             sys.stderr.flush()
             self._shelf[dictionary] = self.generate_word_list(filesets[dictionary])
-            print >> sys.stderr, 'Done.'
+            print('Done.', file=sys.stderr)
 
     def is_real_word(self, word):
         return word in self._shelf['wordlist']
@@ -231,16 +233,15 @@ def main(argv=sys.argv[1:]):
 
         if args.max_length is not None:
             if args.min_length > args.max_length:
-                print >> sys.stderr, "Words cannot have a max-length shorter than their min-length!"
+                print("Words cannot have a max-length shorter than their min-length!", file=sys.stderr)
                 return -1
 
-        if args.verbose:
-            LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
+        LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
 
         with DataFile(join(DATA_FILE_ROOT, 'dictionary.dat'), refresh=args.refresh) as shelf:
             model = shelf[args.dictionary]
             for _ in range(args.count):
-                print ''.join(model.random_sequence(args.min_length, args.max_length, lambda w: not shelf.is_real_word(''.join(w))))
+                print(''.join(model.random_sequence(args.min_length, args.max_length, lambda w: not shelf.is_real_word(''.join(w)))))
     except KeyboardInterrupt: pass
 
     return 0
