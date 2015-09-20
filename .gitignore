@@ -29,3 +29,4 @@ htmlcov
 .mr.developer.cfg
 data
 .idea
+.cache
