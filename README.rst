@@ -55,7 +55,6 @@ The results are random, but you should see something like the following::
     intneshemblary
     clumake
     pladrachoppedally
-    sours
     fuledi
     pheable
     frilita
@@ -64,11 +63,8 @@ The results are random, but you should see something like the following::
     haridisuppechooge
     turefurnic
     butermel
+    amblier
     
-You'll notice that 'sours' is an actual word -- this is likely when using the
-rules of English to generate words! One day, fictionary will check results
-against its word list and reject any that match, but I haven't done this yet.
-                            
 How it Works
 ------------
 
@@ -80,6 +76,16 @@ following 's' at the start of a word is 't' etc.)
 Once fictionary understands the patterns of letters used in words in the
 English language, it can use these rules to generate new, nonsense words that
 look like English words, but (probably) aren't.
+
+Releasing
+---------
+
+These are notes for me, as is probably obvious:
+
+* **Check the README**
+* `bumpversion`
+* `python setup.py sdist bdist_wheel` 
+* `twine upload dist/*.*`
 
 To Do
 -----
