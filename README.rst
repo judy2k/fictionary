@@ -98,10 +98,6 @@ Word Generation Rollback
     Rejecting words that are too long or short is reasonably expensive. I may
     refactor this to rollback and remake choices until a valid 'word' is
     reached. Or I may find something better to do with my time.
-Packaging
-    I need to write a setup.py and possibly a standalone installer. Mainly
-    for my own benefit -- I don't really expect anyone to be interested
-    in this.
 Auto-Refresh
     Automatically recreate the data file if the source files change.
 Data-File Optimisation
