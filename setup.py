@@ -6,7 +6,7 @@ from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 REQUIREMENTS = [
-    "click>=5.0,<6.0",
+    "click>=5.0,<7.0",
 ],
 
 TEST_REQUIREMENTS = [
