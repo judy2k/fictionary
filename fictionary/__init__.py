@@ -15,28 +15,35 @@ from os.path import join, exists, dirname
 import random
 import shelve
 import sys
+import tempfile
 
-import click
-
-APP_NAME = "fictionary"
 
 # Where to save the generated data file:
-DATA_FILE_ROOT = click.get_app_dir(APP_NAME)
+DATA_FILE_ROOT = tempfile.gettempdir()
 
 # Where to load the source ispell wordlists:
 SRC_DATA_FILE_ROOT = dirname(__file__)
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('fictionary')
+
+DICT_ALL_KEY = str('all')
+DICT_BRITISH_KEY = str('british')
+DICT_AMERICAN_KEY = str('american')
 
 ISPELL_FILESETS = {
-    'all': glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')),
-    'british':
+    DICT_ALL_KEY: glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')),
+    DICT_BRITISH_KEY:
         glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/english.*')) +
         glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/british.*')),
-    'american':
+    DICT_AMERICAN_KEY:
         glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/english.*')) +
         glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/american.*')),
 }
+
+WORDLIST_KEY = str('wordlist')
+
+DEFAULT_NUM_WORDS = 1
+DEFAULT_MIN_LENGTH = 4
 
 
 class Markov(object):
@@ -145,7 +152,7 @@ class DataFile(object):
         self.path = path
 
     def __getitem__(self, key):
-        return self._shelf[key]
+        return self._shelf[str(key)]
 
     def __enter__(self):
         return self
@@ -175,7 +182,7 @@ class DataFile(object):
             for line in open(path):
                 word = line.strip()
                 if not line[0].isupper() and "'" not in word:
-                    self._shelf['wordlist'].add(word)
+                    self._shelf[WORDLIST_KEY].add(word)
                     result.feed(word)
         self._shelf.sync()
         return result
@@ -201,21 +208,45 @@ class DataFile(object):
             makedirs(containing_dir)
         self._shelf = shelve.open(
             data_file_path, protocol=2, flag='n', writeback=True)
-        self._shelf['wordlist'] = set()
-        for dictionary in ['all', 'british', 'american']:
-            print("Generating '%s' dictionary... " % dictionary,
-                  file=sys.stderr)
+        self._shelf[WORDLIST_KEY] = set()
+        for dictionary in [DICT_ALL_KEY, DICT_BRITISH_KEY, DICT_AMERICAN_KEY]:
+            LOG.debug("Started generating '%s' dictionary... " % dictionary)
             sys.stderr.flush()
             self._shelf[dictionary] = self.generate_word_list(
                 filesets[dictionary]
             )
-            print('Done.', file=sys.stderr)
+            LOG.debug("Finished generating '%s' dictionary." % dictionary)
 
     def is_real_word(self, word):
         """
         Checks the provided word to see if it's contained in the data file.
         """
-        return word in self._shelf['wordlist']
+        return word in self._shelf[WORDLIST_KEY]
+
+
+def get_random_words(
+        num_words=DEFAULT_NUM_WORDS, min_length=DEFAULT_MIN_LENGTH,
+        max_length=None, dictionary=DICT_BRITISH_KEY,
+        is_refresh=False, is_verbose=False):
+    """Get a random sequence of fictionary words.
+
+    Call this function to use fictionary from any other Python code.
+    """
+    LOG.setLevel(logging.DEBUG if is_verbose else logging.WARNING)
+
+    path = join(DATA_FILE_ROOT, 'fictionary_dictionary.dat')
+    random_words = []
+
+    with DataFile(path, refresh=is_refresh) as shelf:
+        model = shelf[str(dictionary)]
+
+        for _ in range(num_words):
+            real_word_filter = lambda w: not shelf.is_real_word(''.join(w))
+            random_word = str(''.join(model.random_sequence(
+                min_length, max_length, real_word_filter)))
+            random_words.append(random_word)
+
+    return random_words
 
 
 def main(argv=sys.argv[1:]):
@@ -227,10 +258,10 @@ def main(argv=sys.argv[1:]):
         parser.add_argument(
             '-v', '--verbose', action='store_true', help="Be verbose.")
         parser.add_argument(
-            '-c', '--count', type=int, default=1,
+            '-c', '--count', type=int, default=DEFAULT_NUM_WORDS,
             help="The number of words to generate.")
         parser.add_argument(
-            '-m', '--min-length', type=int, default=4,
+            '-m', '--min-length', type=int, default=DEFAULT_MIN_LENGTH,
             metavar="LENGTH",
             help="Only generate words of LENGTH chars or longer.")
         parser.add_argument(
@@ -240,7 +271,7 @@ def main(argv=sys.argv[1:]):
             '--refresh', action='store_true',
             help="Re-create the data file from the word-lists.")
         parser.add_argument(
-            '-d', '--dictionary', default='british',
+            '-d', '--dictionary', default=DICT_BRITISH_KEY,
             help="The dictionary rules to follow: american, british, or all")
 
         args = parser.parse_args(argv)
@@ -251,17 +282,12 @@ def main(argv=sys.argv[1:]):
                       " min-length!", file=sys.stderr)
                 return -1
 
-        LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
+        random_words = get_random_words(
+            num_words=args.count, min_length=args.min_length,
+            max_length=args.max_length, dictionary=args.dictionary,
+            is_refresh=args.refresh, is_verbose=args.verbose)
 
-        path = join(DATA_FILE_ROOT, 'dictionary.dat')
-        with DataFile(path, refresh=args.refresh) as shelf:
-            model = shelf[args.dictionary]
-            for _ in range(args.count):
-                real_word_filter = lambda w: not shelf.is_real_word(''.join(w))
-                print(''.join(
-                    model.random_sequence(
-                        args.min_length, args.max_length, real_word_filter)
-                ))
+        print(''.join(random_words))
     except KeyboardInterrupt:
         pass
 

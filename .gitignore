@@ -30,3 +30,6 @@ htmlcov
 data
 .idea
 .cache
+
+# Virtualenvs
+env/
