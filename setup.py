@@ -33,7 +33,7 @@ class PyTest(TestCommand):
 
 setup(
     name="fictionary",
-    version="0.0.3",
+    version="0.0.4",
     description="Generate made-up words following the patterns used by real"
                 " English words.",
     url="https://github.com/judy2k/fictionary",
