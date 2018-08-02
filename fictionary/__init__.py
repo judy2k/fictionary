@@ -15,16 +15,22 @@ from os.path import join, exists, dirname
 import random
 import shelve
 import sys
-import tempfile
 
+
+APP_NAME = "fictionary"
 
 # Where to save the generated data file:
-DATA_FILE_ROOT = tempfile.gettempdir()
+try:
+    import click
+    DATA_FILE_ROOT = click.get_app_dir(APP_NAME)
+except ImportError:
+    import tempfile
+    DATA_FILE_ROOT = tempfile.gettempdir()
 
 # Where to load the source ispell wordlists:
 SRC_DATA_FILE_ROOT = dirname(__file__)
 
-LOG = logging.getLogger('fictionary')
+LOG = logging.getLogger(APP_NAME)
 
 DICT_ALL_KEY = str('all')
 DICT_BRITISH_KEY = str('british')
@@ -227,14 +233,12 @@ class DataFile(object):
 def get_random_words(
         num_words=DEFAULT_NUM_WORDS, min_length=DEFAULT_MIN_LENGTH,
         max_length=None, dictionary=DICT_BRITISH_KEY,
-        is_refresh=False, is_verbose=False):
+        is_refresh=False):
     """Get a random sequence of fictionary words.
 
     Call this function to use fictionary from any other Python code.
     """
-    LOG.setLevel(logging.DEBUG if is_verbose else logging.WARNING)
-
-    path = join(DATA_FILE_ROOT, 'fictionary_dictionary.dat')
+    path = join(DATA_FILE_ROOT, '{0}_dictionary.dat'.format(APP_NAME))
     random_words = []
 
     with DataFile(path, refresh=is_refresh) as shelf:
@@ -282,10 +286,12 @@ def main(argv=sys.argv[1:]):
                       " min-length!", file=sys.stderr)
                 return -1
 
+        LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
+
         random_words = get_random_words(
             num_words=args.count, min_length=args.min_length,
             max_length=args.max_length, dictionary=args.dictionary,
-            is_refresh=args.refresh, is_verbose=args.verbose)
+            is_refresh=args.refresh)
 
         print(''.join(random_words))
     except KeyboardInterrupt:
