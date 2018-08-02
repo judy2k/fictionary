@@ -32,6 +32,13 @@ SRC_DATA_FILE_ROOT = dirname(__file__)
 
 LOG = logging.getLogger(APP_NAME)
 
+# Note: everywhere in this file that a string literal is being wrapped
+# in str(), this is not useless, it does actually do something.
+# As it turns out, it seems that shelve in Python 2.7 doesn't support
+# Unicode shelf keys. And because we're using "import unicode_literals",
+# all the literal shelf keys are effectively of the form u'key-name'.
+# By wrapping the keys in str(), they become non-Unicode strings in
+# Python 2, and they remain as Unicode in Python 3.
 DICT_ALL_KEY = str('all')
 DICT_BRITISH_KEY = str('british')
 DICT_AMERICAN_KEY = str('american')
@@ -230,6 +237,18 @@ class DataFile(object):
         return word in self._shelf[WORDLIST_KEY]
 
 
+def get_dict_filepath():
+    """Get the path to the dictionary database file.
+
+    The Python 2 file is incompatible with the Python 3 file, so give
+    it a different name.
+    """
+    filename_version_suffix = '_py2' if sys.version_info[0] < 3 else ''
+    filename = '{0}_dictionary{1}.dat'.format(
+        APP_NAME, filename_version_suffix)
+    return join(DATA_FILE_ROOT, filename)
+
+
 def get_random_words(
         num_words=DEFAULT_NUM_WORDS, min_length=DEFAULT_MIN_LENGTH,
         max_length=None, dictionary=DICT_BRITISH_KEY,
@@ -238,7 +257,7 @@ def get_random_words(
 
     Call this function to use fictionary from any other Python code.
     """
-    path = join(DATA_FILE_ROOT, '{0}_dictionary.dat'.format(APP_NAME))
+    path = get_dict_filepath()
     random_words = []
 
     with DataFile(path, refresh=is_refresh) as shelf:
