@@ -1,9 +1,10 @@
 import logging
 
-import mock
+from unittest import mock
 import pytest
 
 import fictionary
+
 
 def test_no_args():
     with mock.patch('fictionary.DataFile', autospec=True) as df:
