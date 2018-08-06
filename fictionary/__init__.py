@@ -312,7 +312,8 @@ def main(argv=sys.argv[1:]):
             max_length=args.max_length, dictionary=args.dictionary,
             is_refresh=args.refresh)
 
-        print(''.join(random_words))
+        for word in random_words:
+            print(word)
     except KeyboardInterrupt:
         pass
 
