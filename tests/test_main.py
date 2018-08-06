@@ -13,7 +13,7 @@ def test_no_args():
         assert kwargs['refresh'] is False
 
 
-def test_no_args():
+def test_refresh():
     with mock.patch('fictionary.DataFile', autospec=True) as df:
         result = fictionary.main(['--refresh'])
         assert df.called

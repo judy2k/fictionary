@@ -30,6 +30,15 @@ following::
                             The dictionary rules to follow: american,british, or
                             all
 
+**Note:** `Click <http://click.pocoo.org/>`_ is an optional dependency
+of Fictionary. It can be installed with a quick ``pip install click``.
+If it's installed, then the generated dictionary file will be saved in a
+persistent location per Click's ``get_app_dir()``. Otherwise, the
+generated dictionary file will be saved to your system's default temp
+directory, where it may get lost between app or system restarts (the
+file gets re-generated automatically if it's not found, so it's no big
+deal, but it's a bit slow each time it re-generates).
+
 Why???
 ------
 
@@ -64,7 +73,7 @@ The results are random, but you should see something like the following::
     turefurnic
     butermel
     amblier
-    
+
 How it Works
 ------------
 
@@ -84,7 +93,7 @@ These are notes for me, as is probably obvious:
 
 * **Check the README**
 * `bumpversion`
-* `python setup.py sdist bdist_wheel` 
+* `python setup.py sdist bdist_wheel`
 * `twine upload dist/*.*`
 
 To Do

@@ -30,3 +30,7 @@ htmlcov
 data
 .idea
 .cache
+.pytest_cache
+
+# Virtualenvs
+env/
