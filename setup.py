@@ -28,6 +28,7 @@ setup(
     keywords="words dictionary fictionary",
 
     packages=['fictionary'],
+    package_dir={"": "src"},
     package_data={
         'fictionary': ['ispell_wordlist/*']
     },
