@@ -2,7 +2,7 @@ import logging
 import random
 import re
 
-from unittest import mock
+import mock
 import pytest
 
 import fictionary

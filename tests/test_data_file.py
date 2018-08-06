@@ -4,7 +4,7 @@ import random
 import re
 
 import pytest
-from unittest import mock
+import mock
 
 import fictionary
 
