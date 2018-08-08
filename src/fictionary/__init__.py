@@ -6,7 +6,6 @@
 
 from __future__ import print_function, unicode_literals
 
-import argparse
 from collections import Counter
 from glob import glob
 import logging
@@ -15,22 +14,17 @@ from os.path import join, exists, dirname
 import random
 import shelve
 import sys
+import tempfile
 
+
+LOG = logging.getLogger('fictionary')
 
 APP_NAME = "fictionary"
-
-# Where to save the generated data file:
-try:
-    import click
-    DATA_FILE_ROOT = click.get_app_dir(APP_NAME)
-except ImportError:
-    import tempfile
-    DATA_FILE_ROOT = tempfile.gettempdir()
+DEFAULT_NUM_WORDS = 1
+DEFAULT_MIN_LENGTH = 4
 
 # Where to load the source ispell wordlists:
 SRC_DATA_FILE_ROOT = dirname(__file__)
-
-LOG = logging.getLogger(APP_NAME)
 
 # Note: everywhere in this file that a string literal is being wrapped
 # in str(), this is not useless, it does actually do something.
@@ -54,9 +48,6 @@ ISPELL_FILESETS = {
 }
 
 WORDLIST_KEY = str('wordlist')
-
-DEFAULT_NUM_WORDS = 1
-DEFAULT_MIN_LENGTH = 4
 
 
 class Markov(object):
@@ -206,8 +197,10 @@ class DataFile(object):
         ``force_refresh`` is True.
         """
         if force_refresh or not exists(data_file_path):
+            LOG.debug("Generating data file at %r", data_file_path)
             self.generate_data_file(data_file_path, filesets)
         else:
+            LOG.debug("Opening existing data file at %r", data_file_path)
             self._shelf = shelve.open(
                 data_file_path, protocol=2, flag='w', writeback=True)
 
@@ -236,89 +229,37 @@ class DataFile(object):
         """
         return word in self._shelf[WORDLIST_KEY]
 
+    def get_random_word(self, dictionary, min_length, max_length):
+        model = self[str(dictionary)]
 
-def get_dict_filepath():
+        real_word_filter = lambda w: not self.is_real_word(''.join(w))
+        return str(''.join(model.random_sequence(
+            min_length, max_length, real_word_filter)))
+
+
+def get_temp_filepath():
     """Get the path to the dictionary database file.
 
     The Python 2 file is incompatible with the Python 3 file, so give
     it a different name.
     """
+    data_file_root = tempfile.gettempdir()
     filename_version_suffix = '_py2' if sys.version_info[0] < 3 else ''
     filename = '{0}_dictionary{1}.dat'.format(
         APP_NAME, filename_version_suffix)
-    return join(DATA_FILE_ROOT, filename)
+    return join(data_file_root, filename)
 
 
 def get_random_words(
         num_words=DEFAULT_NUM_WORDS, min_length=DEFAULT_MIN_LENGTH,
         max_length=None, dictionary=DICT_BRITISH_KEY,
-        is_refresh=False):
+        is_refresh=False, path=None):
     """Get a random sequence of fictionary words.
 
     Call this function to use fictionary from any other Python code.
     """
-    path = get_dict_filepath()
-    random_words = []
-
+    path = path or get_temp_filepath()
     with DataFile(path, refresh=is_refresh) as shelf:
-        model = shelf[str(dictionary)]
+        return [shelf.get_random_word(dictionary, min_length=min_length, max_length=max_length)
+                for _ in range(num_words)]
 
-        for _ in range(num_words):
-            real_word_filter = lambda w: not shelf.is_real_word(''.join(w))
-            random_word = str(''.join(model.random_sequence(
-                min_length, max_length, real_word_filter)))
-            random_words.append(random_word)
-
-    return random_words
-
-
-def main(argv=sys.argv[1:]):
-    """
-    Entry-function for running fictionary as a command-line program.
-    """
-    try:
-        parser = argparse.ArgumentParser(description=__doc__.strip())
-        parser.add_argument(
-            '-v', '--verbose', action='store_true', help="Be verbose.")
-        parser.add_argument(
-            '-c', '--count', type=int, default=DEFAULT_NUM_WORDS,
-            help="The number of words to generate.")
-        parser.add_argument(
-            '-m', '--min-length', type=int, default=DEFAULT_MIN_LENGTH,
-            metavar="LENGTH",
-            help="Only generate words of LENGTH chars or longer.")
-        parser.add_argument(
-            '-x', '--max-length', type=int, default=None, metavar="LENGTH",
-            help="Only generate words of LENGTH chars or shorter.")
-        parser.add_argument(
-            '--refresh', action='store_true',
-            help="Re-create the data file from the word-lists.")
-        parser.add_argument(
-            '-d', '--dictionary', default=DICT_BRITISH_KEY,
-            help="The dictionary rules to follow: american, british, or all")
-
-        args = parser.parse_args(argv)
-
-        if args.max_length is not None:
-            if args.min_length > args.max_length:
-                print("Words cannot have a max-length shorter than their"
-                      " min-length!", file=sys.stderr)
-                return -1
-
-        LOG.setLevel(logging.DEBUG if args.verbose else logging.WARNING)
-
-        random_words = get_random_words(
-            num_words=args.count, min_length=args.min_length,
-            max_length=args.max_length, dictionary=args.dictionary,
-            is_refresh=args.refresh)
-
-        for word in random_words:
-            print(word)
-    except KeyboardInterrupt:
-        pass
-
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())

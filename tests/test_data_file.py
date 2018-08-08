@@ -1,7 +1,5 @@
 from glob import glob
 from os.path import dirname, join, exists
-import random
-import re
 
 import pytest
 import mock

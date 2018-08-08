@@ -1,7 +1,3 @@
-import logging
-import random
-import re
-
 import mock
 import pytest
 

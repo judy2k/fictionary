@@ -24,6 +24,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
     ],
     keywords="words dictionary fictionary",
 
@@ -33,11 +34,14 @@ setup(
         'fictionary': ['ispell_wordlist/*']
     },
     install_requires=[],
+    extras_require = {
+        'cli':  ["click>=5.0.0"]
+    },
     zip_safe=False,
 
     entry_points={
         'console_scripts': [
-            'fictionary=fictionary:main',
+            'fictionary=fictionary.cli:main',
         ]
     },
 )
