@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"f458d1c" = {path = ".", editable = true}
+
+[dev-packages]
+pytest = ">=2.7.2"
+pytest-cov = ">=2.5.1"
+tox = ">=2.1.1"
+bumpversion = ">=0.5.3"
+twine = ">=1.11.0"
+
+[requires]
+python_version = "3.6"
