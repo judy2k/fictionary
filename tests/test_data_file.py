@@ -6,6 +6,11 @@ import mock
 
 import fictionary
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+LOG = logging.getLogger('fictionary.tests')
+
 
 SRC_DATA_FILE_ROOT = join(dirname(__file__), "data")
 ISPELL_FILESETS = {
@@ -34,20 +39,23 @@ def test_getitem(datafile):
     assert list(datafile['american'][('x', 'u')].keys()) == ['a']
 
 
-def test_open_existing_file(datafile):
+def test_open_existing_file(datafile, tmpdir):
     path = datafile.path
 
     before = datafile['british'][('a', 'b')]
+    LOG.debug('before = %r', before)
 
     datafile.close()
 
     df = fictionary.DataFile(path)
+    LOG.debug('after = %r', df['british'][('a', 'b')])
+
     assert before == df['british'][('a', 'b')]
 
 
 def test_is_real_word(datafile):
-    assert datafile.is_real_word('xxxxxx') == False
-    assert datafile.is_real_word('beclamour') == True
+    assert datafile.is_real_word('xxxxxx') is False
+    assert datafile.is_real_word('beclamour') is True
 
 
 def test_create_intermediate_dirs(tmpdir):
@@ -61,7 +69,7 @@ def test_create_intermediate_dirs(tmpdir):
 
 def test_refresh_true(datafile):
     datafile.close()
-    assert exists(datafile.path)
-    with mock.patch.object(fictionary.DataFile, 'generate_data_file') as gdf:
+    with mock.patch.object(fictionary.DataFile, '_set_word_list') as gdf:
         fictionary.DataFile(datafile.path, filesets=ISPELL_FILESETS, refresh=True)
-        gdf.assert_called_once_with(datafile.path, ISPELL_FILESETS)
+        print(gdf.call_count)
+        assert gdf.call_count == 3

@@ -196,32 +196,35 @@ class DataFile(object):
         Open a fictionary data file, creating a new one if necessary, or if
         ``force_refresh`` is True.
         """
-        if force_refresh or not exists(data_file_path):
-            LOG.debug("Generating data file at %r", data_file_path)
-            self.generate_data_file(data_file_path, filesets)
-        else:
-            LOG.debug("Opening existing data file at %r", data_file_path)
+        containing_dir = dirname(data_file_path)
+        if not exists(containing_dir):
+            makedirs(containing_dir)
+        if force_refresh:
             self._shelf = shelve.open(
-                data_file_path, protocol=2, flag='w', writeback=True)
+                data_file_path, protocol=2, flag='n', writeback=True)
+        else:
+            self._shelf = shelve.open(
+                data_file_path, protocol=2, flag='c', writeback=True)
 
-    def generate_data_file(self, data_file_path, filesets):
+        self.ensure_data(filesets)
+
+    def ensure_data(self, filesets):
         """
         Create a new fictionary data file at ``data_file_path`` from the files
         listed in ``filesets``
         """
-        containing_dir = dirname(data_file_path)
-        if not exists(containing_dir):
-            makedirs(containing_dir)
-        self._shelf = shelve.open(
-            data_file_path, protocol=2, flag='n', writeback=True)
         self._shelf[WORDLIST_KEY] = set()
         for dictionary in [DICT_ALL_KEY, DICT_BRITISH_KEY, DICT_AMERICAN_KEY]:
-            LOG.debug("Started generating '%s' dictionary... " % dictionary)
-            sys.stderr.flush()
-            self._shelf[dictionary] = self.generate_word_list(
-                filesets[dictionary]
-            )
-            LOG.debug("Finished generating '%s' dictionary." % dictionary)
+            if not self._shelf.get(dictionary):
+                LOG.debug("Started generating '%s' dictionary... " % dictionary)
+                sys.stderr.flush()
+                self._set_word_list(dictionary, self.generate_word_list(
+                    filesets[dictionary]
+                ))
+                LOG.debug("Finished generating '%s' dictionary." % dictionary)
+
+    def _set_word_list(self, dictionary, word_list):
+        self._shelf[dictionary] = word_list
 
     def is_real_word(self, word):
         """
