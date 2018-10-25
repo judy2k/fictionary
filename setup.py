@@ -8,7 +8,7 @@ setup(
     name="fictionary",
     version="0.0.4",
     description="Generate made-up words following the patterns used by real"
-                " English words.",
+    " English words.",
     url="https://github.com/judy2k/fictionary",
     author="Mark Smith",
     author_email="mark.smith@practicalpoetry.co.uk",
@@ -27,21 +27,11 @@ setup(
         "Programming Language :: Python :: 3.6",
     ],
     keywords="words dictionary fictionary",
-
-    packages=['fictionary'],
+    packages=["fictionary"],
     package_dir={"": "src"},
-    package_data={
-        'fictionary': ['ispell_wordlist/*']
-    },
+    package_data={"fictionary": ["ispell_wordlist/*"]},
     install_requires=[],
-    extras_require = {
-        'cli':  ["click>=5.0.0"]
-    },
+    extras_require={"cli": ["click>=5.0.0"]},
     zip_safe=False,
-
-    entry_points={
-        'console_scripts': [
-            'fictionary=fictionary.cli:main',
-        ]
-    },
+    entry_points={"console_scripts": ["fictionary=fictionary.cli:main"]},
 )
