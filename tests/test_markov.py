@@ -10,7 +10,7 @@ import fictionary
 def test_predictable():
     markov = fictionary.Markov()
     markov.feed("abcde")
-    assert ''.join(markov.random_sequence(5, 5)) == "abcde"
+    assert "".join(markov.random_sequence(5, 5)) == "abcde"
 
 
 def test_multiple_options():
@@ -19,8 +19,8 @@ def test_multiple_options():
     markov = fictionary.Markov()
     markov.feed("abccde")
     markov.feed("cccde")
-    generated = ''.join(markov.random_sequence(7))
-    assert re.match(r'abc+de', generated)
+    generated = "".join(markov.random_sequence(7))
+    assert re.match(r"abc+de", generated)
 
 
 def test_impossible():
