@@ -5,6 +5,8 @@ Fictionary
     :target: https://travis-ci.com/judy2k/fictionary
 .. image:: https://coveralls.io/repos/github/judy2k/fictionary/badge.svg?branch=master
     :target: https://coveralls.io/github/judy2k/fictionary?branch=master
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
 
 Generate made-up words following the patterns used by real English words.
 
