@@ -13,6 +13,10 @@ tox = ">=2.1.1"
 bumpversion = ">=0.5.3"
 twine = ">=1.11.0"
 coveralls = "*"
+black = "*"
 
 [requires]
 python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true

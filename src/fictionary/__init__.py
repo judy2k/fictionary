@@ -17,7 +17,7 @@ import sys
 import tempfile
 
 
-LOG = logging.getLogger('fictionary')
+LOG = logging.getLogger("fictionary")
 
 APP_NAME = "fictionary"
 DEFAULT_NUM_WORDS = 1
@@ -33,21 +33,19 @@ SRC_DATA_FILE_ROOT = dirname(__file__)
 # all the literal shelf keys are effectively of the form u'key-name'.
 # By wrapping the keys in str(), they become non-Unicode strings in
 # Python 2, and they remain as Unicode in Python 3.
-DICT_ALL_KEY = str('all')
-DICT_BRITISH_KEY = str('british')
-DICT_AMERICAN_KEY = str('american')
+DICT_ALL_KEY = str("all")
+DICT_BRITISH_KEY = str("british")
+DICT_AMERICAN_KEY = str("american")
 
 ISPELL_FILESETS = {
-    DICT_ALL_KEY: glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/*.*')),
-    DICT_BRITISH_KEY:
-        glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/english.*')) +
-        glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/british.*')),
-    DICT_AMERICAN_KEY:
-        glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/english.*')) +
-        glob(join(SRC_DATA_FILE_ROOT, 'ispell_wordlist/american.*')),
+    DICT_ALL_KEY: glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/*.*")),
+    DICT_BRITISH_KEY: glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/english.*"))
+    + glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/british.*")),
+    DICT_AMERICAN_KEY: glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/english.*"))
+    + glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/american.*")),
 }
 
-WORDLIST_KEY = str('wordlist')
+WORDLIST_KEY = str("wordlist")
 
 
 class Markov(object):
@@ -64,7 +62,7 @@ class Markov(object):
         """ Add a sequence of tokens for addition to the Markov model. """
         terms = [None, None] + list(tokens) + [None]
         for index in range(len(terms) - 2):
-            pair = tuple(terms[index:index + 2])
+            pair = tuple(terms[index : index + 2])
             nxt = terms[index + 2]
             options = self.data.get(pair, None)
             if options is not None:
@@ -87,16 +85,23 @@ class Markov(object):
 
         for _ in range(1000):
             result = list(self.random_sequence_generator())
-            if len(result) >= min_length \
-                    and (max_length is None or len(result) <= max_length) \
-                    and filter(result):
+            if (
+                len(result) >= min_length
+                and (max_length is None or len(result) <= max_length)
+                and filter(result)
+            ):
                 LOG.debug(
-                    'Result: %s (%d <= %d <= %r)',
-                    result, min_length, len(result), max_length
+                    "Result: %s (%d <= %d <= %r)",
+                    result,
+                    min_length,
+                    len(result),
+                    max_length,
                 )
                 return result
-        raise Exception("Couldn't find a valid word in 1000 iterations - "
-                        "it looks like something is wrong!")
+        raise Exception(
+            "Couldn't find a valid word in 1000 iterations - "
+            "it looks like something is wrong!"
+        )
 
     def random_sequence_generator(self):
         """ A generator to provide a sequence from the Markov model. """
@@ -128,8 +133,10 @@ class RandomCounter(Counter):
             total += count
             if i < total:
                 return val
-        raise IndexError('Value of i (%d) was greater than max index (%d)'
-                         % (i, sum(self.values()) - 1))
+        raise IndexError(
+            "Value of i (%d) was greater than max index (%d)"
+            % (i, sum(self.values()) - 1)
+        )
 
     def random_choice(self, weighted=True):
         """ Obtain a randomly-chosen key from the counter.
@@ -201,10 +208,12 @@ class DataFile(object):
             makedirs(containing_dir)
         if force_refresh:
             self._shelf = shelve.open(
-                data_file_path, protocol=2, flag='n', writeback=True)
+                data_file_path, protocol=2, flag="n", writeback=True
+            )
         else:
             self._shelf = shelve.open(
-                data_file_path, protocol=2, flag='c', writeback=True)
+                data_file_path, protocol=2, flag="c", writeback=True
+            )
 
         self.ensure_data(filesets)
 
@@ -218,9 +227,9 @@ class DataFile(object):
             if not self._shelf.get(dictionary):
                 LOG.debug("Started generating '%s' dictionary... " % dictionary)
                 sys.stderr.flush()
-                self._set_word_list(dictionary, self.generate_word_list(
-                    filesets[dictionary]
-                ))
+                self._set_word_list(
+                    dictionary, self.generate_word_list(filesets[dictionary])
+                )
                 LOG.debug("Finished generating '%s' dictionary." % dictionary)
 
     def _set_word_list(self, dictionary, word_list):
@@ -235,9 +244,10 @@ class DataFile(object):
     def get_random_word(self, dictionary, min_length, max_length):
         model = self[str(dictionary)]
 
-        real_word_filter = lambda w: not self.is_real_word(''.join(w))
-        return str(''.join(model.random_sequence(
-            min_length, max_length, real_word_filter)))
+        real_word_filter = lambda w: not self.is_real_word("".join(w))
+        return str(
+            "".join(model.random_sequence(min_length, max_length, real_word_filter))
+        )
 
 
 def get_temp_filepath():
@@ -247,22 +257,28 @@ def get_temp_filepath():
     it a different name.
     """
     data_file_root = tempfile.gettempdir()
-    filename_version_suffix = '_py2' if sys.version_info[0] < 3 else ''
-    filename = '{0}_dictionary{1}.dat'.format(
-        APP_NAME, filename_version_suffix)
+    filename_version_suffix = "_py2" if sys.version_info[0] < 3 else ""
+    filename = "{0}_dictionary{1}.dat".format(APP_NAME, filename_version_suffix)
     return join(data_file_root, filename)
 
 
 def get_random_words(
-        num_words=DEFAULT_NUM_WORDS, min_length=DEFAULT_MIN_LENGTH,
-        max_length=None, dictionary=DICT_BRITISH_KEY,
-        is_refresh=False, path=None):
+    num_words=DEFAULT_NUM_WORDS,
+    min_length=DEFAULT_MIN_LENGTH,
+    max_length=None,
+    dictionary=DICT_BRITISH_KEY,
+    is_refresh=False,
+    path=None,
+):
     """Get a random sequence of fictionary words.
 
     Call this function to use fictionary from any other Python code.
     """
     path = path or get_temp_filepath()
     with DataFile(path, refresh=is_refresh) as shelf:
-        return [shelf.get_random_word(dictionary, min_length=min_length, max_length=max_length)
-                for _ in range(num_words)]
-
+        return [
+            shelf.get_random_word(
+                dictionary, min_length=min_length, max_length=max_length
+            )
+            for _ in range(num_words)
+        ]
