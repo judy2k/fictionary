@@ -12,6 +12,7 @@ pytest-cov = ">=2.5.1"
 tox = ">=2.1.1"
 bumpversion = ">=0.5.3"
 twine = ">=1.11.0"
+coveralls = "*"
 
 [requires]
 python_version = "3.6"
