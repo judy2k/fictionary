@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import sys
-
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="fictionary",
@@ -27,11 +25,10 @@ setup(
         "Programming Language :: Python :: 3.6",
     ],
     keywords="words dictionary fictionary",
-    packages=["fictionary"],
+    packages=find_packages("src"),
     package_dir={"": "src"},
-    package_data={"fictionary": ["ispell_wordlist/*"]},
+    package_data={"fictionary": ["models/*.txt"]},
     install_requires=[],
-    extras_require={"cli": ["click>=5.0.0"]},
     zip_safe=False,
     entry_points={"console_scripts": ["fictionary=fictionary.cli:main"]},
 )

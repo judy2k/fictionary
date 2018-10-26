@@ -5,31 +5,14 @@ from __future__ import print_function, unicode_literals
 
 import argparse
 import logging
-import os.path
 import sys
 
-import click
-
 import fictionary
+import fictionary.model
 
 LOG = logging.getLogger("fictionary.cli")
 
-# Where to save the generated data file:
-
-DATA_FILE_ROOT = click.get_app_dir(fictionary.APP_NAME)
-
-
-def get_cache_filepath():
-    """Get the path to the dictionary database file.
-
-    The Python 2 file is incompatible with the Python 3 file, so give
-    it a different name.
-    """
-    filename_version_suffix = "_py2" if sys.version_info[0] < 3 else ""
-    filename = "{0}_dictionary{1}.dat".format(
-        fictionary.APP_NAME, filename_version_suffix
-    )
-    return os.path.join(DATA_FILE_ROOT, filename)
+DEFAULT_NUM_WORDS = 1
 
 
 def main(argv=sys.argv[1:]):
@@ -43,16 +26,16 @@ def main(argv=sys.argv[1:]):
             "-c",
             "--count",
             type=int,
-            default=fictionary.DEFAULT_NUM_WORDS,
-            help="The number of words to generate.",
+            default=DEFAULT_NUM_WORDS,
+            help="The number of words to create.",
         )
         parser.add_argument(
             "-m",
             "--min-length",
             type=int,
-            default=fictionary.DEFAULT_MIN_LENGTH,
+            default=fictionary.model.DEFAULT_MIN_LENGTH,
             metavar="LENGTH",
-            help="Only generate words of LENGTH chars or longer.",
+            help="Only make_model words of LENGTH chars or longer.",
         )
         parser.add_argument(
             "-x",
@@ -60,17 +43,17 @@ def main(argv=sys.argv[1:]):
             type=int,
             default=None,
             metavar="LENGTH",
-            help="Only generate words of LENGTH chars or shorter.",
-        )
-        parser.add_argument(
-            "--refresh",
-            action="store_true",
-            help="Re-create the data file from the word-lists.",
+            help="Only make_model words of LENGTH chars or shorter.",
         )
         parser.add_argument(
             "-d",
             "--dictionary",
             default=fictionary.DICT_BRITISH_KEY,
+            choices=[
+                fictionary.DICT_ALL_KEY,
+                fictionary.DICT_AMERICAN_KEY,
+                fictionary.DICT_BRITISH_KEY,
+            ],
             help="The dictionary rules to follow: american, british, or all",
         )
 
@@ -79,7 +62,7 @@ def main(argv=sys.argv[1:]):
         if args.max_length is not None:
             if args.min_length > args.max_length:
                 print(
-                    "Words cannot have a max-length shorter than their" " min-length!",
+                    "Words cannot have a max-length shorter than their min-length!",
                     file=sys.stderr,
                 )
                 return -1
@@ -89,13 +72,11 @@ def main(argv=sys.argv[1:]):
             format="%(message)s",
         )
 
-        random_words = fictionary.get_random_words(
+        random_words = fictionary.words(
             num_words=args.count,
             min_length=args.min_length,
             max_length=args.max_length,
             dictionary=args.dictionary,
-            is_refresh=args.refresh,
-            path=get_cache_filepath(),
         )
 
         for word in random_words:
