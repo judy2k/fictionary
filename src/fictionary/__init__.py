@@ -8,13 +8,14 @@ from __future__ import print_function, unicode_literals
 
 from collections import Counter
 from glob import glob
+import importlib
 import logging
 from os import makedirs
 from os.path import join, exists, dirname
 import random
-import shelve
 import sys
-import tempfile
+
+from io import StringIO
 
 
 LOG = logging.getLogger("fictionary")
@@ -22,30 +23,39 @@ LOG = logging.getLogger("fictionary")
 APP_NAME = "fictionary"
 DEFAULT_NUM_WORDS = 1
 DEFAULT_MIN_LENGTH = 4
+DEFAULT_MAX_LENGTH = None
 
-# Where to load the source ispell wordlists:
-SRC_DATA_FILE_ROOT = dirname(__file__)
+DICT_ALL_KEY = "all"
+DICT_BRITISH_KEY = "british"
+DICT_AMERICAN_KEY = "american"
 
-# Note: everywhere in this file that a string literal is being wrapped
-# in str(), this is not useless, it does actually do something.
-# As it turns out, it seems that shelve in Python 2.7 doesn't support
-# Unicode shelf keys. And because we're using "import unicode_literals",
-# all the literal shelf keys are effectively of the form u'key-name'.
-# By wrapping the keys in str(), they become non-Unicode strings in
-# Python 2, and they remain as Unicode in Python 3.
-DICT_ALL_KEY = str("all")
-DICT_BRITISH_KEY = str("british")
-DICT_AMERICAN_KEY = str("american")
 
-ISPELL_FILESETS = {
-    DICT_ALL_KEY: glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/*.*")),
-    DICT_BRITISH_KEY: glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/english.*"))
-    + glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/british.*")),
-    DICT_AMERICAN_KEY: glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/english.*"))
-    + glob(join(SRC_DATA_FILE_ROOT, "ispell_wordlist/american.*")),
-}
+class Model(object):
+    def __init__(self, markov_data=None, words=None):
+        self._markov = Markov(markov_data) if markov_data is not None else Markov()
+        self._words = words if words is not None else set()
 
-WORDLIST_KEY = str("wordlist")
+    def feed(self, word):
+        self._words.add(word)
+        self._markov.feed(word)
+
+    def is_real_word(self, word):
+        return word in self._words
+
+    def random_word(self, min_length=DEFAULT_MIN_LENGTH, max_length=DEFAULT_MAX_LENGTH):
+        real_word_filter = lambda w: not self.is_real_word("".join(w))
+        return str(
+            "".join(
+                self._markov.random_sequence(min_length, max_length, real_word_filter)
+            )
+        )
+
+    def _code_repl(self):
+        result = StringIO()
+        result.write(
+            "Model(markov_data={markov_data!r})".format(markov_data=self._markov.data)
+        )
+        return result.getvalue()
 
 
 class Markov(object):
@@ -55,8 +65,8 @@ class Markov(object):
     successive token.
     """
 
-    def __init__(self):
-        self.data = {}
+    def __init__(self, data=None):
+        self.data = data if data is not None else {}
 
     def feed(self, tokens):
         """ Add a sequence of tokens for addition to the Markov model. """
@@ -114,6 +124,9 @@ class Markov(object):
                 yield next_token
                 key = (key[1], next_token)
 
+    def _raw_data(self):
+        return {k: dict(v) for k, v in self.data.items()}
+
 
 class RandomCounter(Counter):
     """ A Counter with extra methods for choosing random keys from the
@@ -152,133 +165,15 @@ class RandomCounter(Counter):
             return random.choice(self.most_common())[0]
 
 
-class DataFile(object):
-    """
-    A data file containing pickled markov chains and a dict of known words.
-    """
-
-    def __init__(self, path, filesets=None, refresh=False):
-        self._shelf = None
-        self.open_data_file(path, filesets or ISPELL_FILESETS, refresh)
-        self.path = path
-
-    def __getitem__(self, key):
-        return self._shelf[str(key)]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-    def close(self):
-        """
-        Close the open data filehandle.
-        """
-        if self._shelf:
-            self._shelf.close()
-
-    def generate_word_list(self, files):
-        """
-        Read through one or more wordlist files and generate a Markov object
-        representing the words.
-
-        ``files`` should be a sequence of file paths. Each file will be opened,
-        and each line should contain a single word.  Words beginning with a
-        capital letter or containing an apostrophe will be rejected. Each word
-        is fed into a Markov object as a sequence of characters.
-        """
-        result = Markov()
-        for path in files:
-            for line in open(path):
-                word = line.strip()
-                if not line[0].isupper() and "'" not in word:
-                    self._shelf[WORDLIST_KEY].add(word)
-                    result.feed(word)
-        self._shelf.sync()
-        return result
-
-    def open_data_file(self, data_file_path, filesets, force_refresh):
-        """
-        Open a fictionary data file, creating a new one if necessary, or if
-        ``force_refresh`` is True.
-        """
-        containing_dir = dirname(data_file_path)
-        if not exists(containing_dir):
-            makedirs(containing_dir)
-        if force_refresh:
-            self._shelf = shelve.open(
-                data_file_path, protocol=2, flag="n", writeback=True
-            )
-        else:
-            self._shelf = shelve.open(
-                data_file_path, protocol=2, flag="c", writeback=True
-            )
-
-        self.ensure_data(filesets)
-
-    def ensure_data(self, filesets):
-        """
-        Create a new fictionary data file at ``data_file_path`` from the files
-        listed in ``filesets``
-        """
-        self._shelf[WORDLIST_KEY] = set()
-        for dictionary in [DICT_ALL_KEY, DICT_BRITISH_KEY, DICT_AMERICAN_KEY]:
-            if not self._shelf.get(dictionary):
-                LOG.debug("Started generating '%s' dictionary... " % dictionary)
-                sys.stderr.flush()
-                self._set_word_list(
-                    dictionary, self.generate_word_list(filesets[dictionary])
-                )
-                LOG.debug("Finished generating '%s' dictionary." % dictionary)
-
-    def _set_word_list(self, dictionary, word_list):
-        self._shelf[dictionary] = word_list
-
-    def is_real_word(self, word):
-        """
-        Checks the provided word to see if it's contained in the data file.
-        """
-        return word in self._shelf[WORDLIST_KEY]
-
-    def get_random_word(self, dictionary, min_length, max_length):
-        model = self[str(dictionary)]
-
-        real_word_filter = lambda w: not self.is_real_word("".join(w))
-        return str(
-            "".join(model.random_sequence(min_length, max_length, real_word_filter))
-        )
-
-
-def get_temp_filepath():
-    """Get the path to the dictionary database file.
-
-    The Python 2 file is incompatible with the Python 3 file, so give
-    it a different name.
-    """
-    data_file_root = tempfile.gettempdir()
-    filename_version_suffix = "_py2" if sys.version_info[0] < 3 else ""
-    filename = "{0}_dictionary{1}.dat".format(APP_NAME, filename_version_suffix)
-    return join(data_file_root, filename)
-
-
 def get_random_words(
     num_words=DEFAULT_NUM_WORDS,
     min_length=DEFAULT_MIN_LENGTH,
-    max_length=None,
+    max_length=DEFAULT_MAX_LENGTH,
     dictionary=DICT_BRITISH_KEY,
-    is_refresh=False,
-    path=None,
 ):
     """Get a random sequence of fictionary words.
 
     Call this function to use fictionary from any other Python code.
     """
-    path = path or get_temp_filepath()
-    with DataFile(path, refresh=is_refresh) as shelf:
-        return [
-            shelf.get_random_word(
-                dictionary, min_length=min_length, max_length=max_length
-            )
-            for _ in range(num_words)
-        ]
+    mod = importlib.import_module("fictionary.models." + dictionary)
+    return [mod.model.random_word() for _ in range(num_words)]

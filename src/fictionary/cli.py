@@ -63,11 +63,6 @@ def main(argv=sys.argv[1:]):
             help="Only generate words of LENGTH chars or shorter.",
         )
         parser.add_argument(
-            "--refresh",
-            action="store_true",
-            help="Re-create the data file from the word-lists.",
-        )
-        parser.add_argument(
             "-d",
             "--dictionary",
             default=fictionary.DICT_BRITISH_KEY,
@@ -94,8 +89,6 @@ def main(argv=sys.argv[1:]):
             min_length=args.min_length,
             max_length=args.max_length,
             dictionary=args.dictionary,
-            is_refresh=args.refresh,
-            path=get_cache_filepath(),
         )
 
         for word in random_words:
