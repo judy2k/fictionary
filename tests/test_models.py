@@ -3,7 +3,9 @@ import io
 import json
 import logging
 from os.path import dirname, join
+import fictionary
 import fictionary.models
+import pytest
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -63,7 +65,7 @@ def test_model_to_json():
 
 def test_model_write():
     fp = io.StringIO()
-    m = fictionary.model.Model()
+    m = fictionary.Model()
     m.feed("table")
     m.write(fp)
 
@@ -77,3 +79,25 @@ def test_model_write():
         "b,l": {"e": 1},
         "l,e": {"": 1},
     }
+
+
+def test_incorrect_ver():
+    fp = io.StringIO(
+        json.dumps(
+            {
+                "ver": 399,
+                "markov": {
+                    ",": {"t": 1},
+                    ",t": {"a": 1},
+                    "t,a": {"b": 1},
+                    "a,b": {"l": 1},
+                    "b,l": {"e": 1},
+                    "l,e": {"": 1},
+                },
+            }
+        )
+    )
+
+    m = fictionary.Model()
+    with pytest.raises(fictionary.FileVersionError) as fe:
+        m.read(fp)

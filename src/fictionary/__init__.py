@@ -8,7 +8,12 @@ from __future__ import print_function, unicode_literals
 
 import logging
 
-from fictionary.model import DEFAULT_MIN_LENGTH, DEFAULT_MAX_LENGTH, Model
+from fictionary.model import (
+    DEFAULT_MIN_LENGTH,
+    DEFAULT_MAX_LENGTH,
+    Model,
+    FileVersionError,
+)
 import fictionary.models
 
 __all__ = ["Model", "word", "words"]
