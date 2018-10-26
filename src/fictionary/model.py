@@ -15,7 +15,7 @@ class FileVersionError(Exception):
 class Model(object):
     def __init__(self, markov_data=None, words=None):
         self._markov = Markov(markov_data) if markov_data is not None else Markov()
-        self._words = words if words is not None else set()
+        self._words = set(words) if words is not None else set()
 
     def feed(self, word):
         self._words.add(word)

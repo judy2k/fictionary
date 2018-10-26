@@ -72,7 +72,7 @@ def main(argv=sys.argv[1:]):
             format="%(message)s",
         )
 
-        random_words = fictionary.get_random_words(
+        random_words = fictionary.words(
             num_words=args.count,
             min_length=args.min_length,
             max_length=args.max_length,

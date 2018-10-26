@@ -12,5 +12,5 @@ def test_min_below_max():
 
 
 def test_keyboard_interrupt():
-    with mock.patch("fictionary.get_random_words", side_effect=KeyboardInterrupt):
+    with mock.patch("fictionary.words", side_effect=KeyboardInterrupt):
         assert fictionary.cli.main([]) == 0

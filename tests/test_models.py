@@ -1,4 +1,6 @@
 import codecs
+import io
+import json
 import logging
 from os.path import dirname, join
 import fictionary.models
@@ -48,6 +50,24 @@ def test_model_to_json():
     m = fictionary.model.Model()
     m.feed("table")
     j = m.to_json()
+    assert j["ver"] == 1
+    assert j["markov"] == {
+        ",": {"t": 1},
+        ",t": {"a": 1},
+        "t,a": {"b": 1},
+        "a,b": {"l": 1},
+        "b,l": {"e": 1},
+        "l,e": {"": 1},
+    }
+
+
+def test_model_write():
+    fp = io.StringIO()
+    m = fictionary.model.Model()
+    m.feed("table")
+    m.write(fp)
+
+    j = json.loads(fp.getvalue())
     assert j["ver"] == 1
     assert j["markov"] == {
         ",": {"t": 1},
