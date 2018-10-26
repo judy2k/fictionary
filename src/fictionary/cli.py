@@ -19,19 +19,6 @@ LOG = logging.getLogger("fictionary.cli")
 DATA_FILE_ROOT = click.get_app_dir(fictionary.APP_NAME)
 
 
-def get_cache_filepath():
-    """Get the path to the dictionary database file.
-
-    The Python 2 file is incompatible with the Python 3 file, so give
-    it a different name.
-    """
-    filename_version_suffix = "_py2" if sys.version_info[0] < 3 else ""
-    filename = "{0}_dictionary{1}.dat".format(
-        fictionary.APP_NAME, filename_version_suffix
-    )
-    return os.path.join(DATA_FILE_ROOT, filename)
-
-
 def main(argv=sys.argv[1:]):
     """
     Entry-function for running fictionary as a command-line program.
