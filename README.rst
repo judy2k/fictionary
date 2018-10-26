@@ -59,7 +59,7 @@ And you can also use it as a library:
     'regagreagised'
 
 And if you want to create your own models::
-
+    .. code-block:: python
     # Create a model and add a couple of words to it:
     m = fictionary.Model()
     m.feed('table')
