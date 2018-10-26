@@ -37,14 +37,20 @@ class Model(object):
 
     def read(self, fp):
         """
+        Read a Markov model from a JSON file, as originally saved by :meth:`write`.
+
+        Note that saved Markov models **do not** contain the original word
+        list, and so this must be provided using the `words` parameter to :class:`Model`
+
+        :param fp: (a .read()-supporting text file-like object containing a JSON document
+
         :raises FileVersionError: if the version of the saved file is not supported
-        :param fp:
-        :return:
         """
         j = json.load(fp)
         if j["ver"] != 1:
             raise FileVersionError(
-                "Attempt to read file of version {ver}, but this version of fictionary can only read version {supported}".format(
+                "Attempt to read file of version {ver}, but this version of"
+                " fictionary can only read version {supported}".format(
                     ver=j["ver"], supported=SUPPORTED_FILE_VER
                 )
             )
