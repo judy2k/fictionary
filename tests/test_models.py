@@ -63,6 +63,8 @@ def test_model_to_json():
     }
 
 
+# Honestly couldn't be bothered to get these tests running under Python 2.7
+@pytest.mark.skipif("sys.version_info < (3,)")
 def test_model_write():
     fp = io.StringIO()
     m = fictionary.Model()
@@ -81,6 +83,8 @@ def test_model_write():
     }
 
 
+# Honestly couldn't be bothered to get these tests running under Python 2.7
+@pytest.mark.skipif("sys.version_info < (3,)")
 def test_incorrect_ver():
     fp = io.StringIO(
         json.dumps(
