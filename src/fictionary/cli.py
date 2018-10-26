@@ -74,7 +74,7 @@ def main(argv=sys.argv[1:]):
         if args.max_length is not None:
             if args.min_length > args.max_length:
                 print(
-                    "Words cannot have a max-length shorter than their" " min-length!",
+                    "Words cannot have a max-length shorter than their min-length!",
                     file=sys.stderr,
                 )
                 return -1
