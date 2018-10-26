@@ -10,8 +10,6 @@ import importlib
 import json
 import logging
 
-from io import StringIO
-
 from fictionary.markov import Markov
 
 APP_NAME = "fictionary"
