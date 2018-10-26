@@ -63,15 +63,15 @@ def test_model_to_json():
     }
 
 
-# Honestly couldn't be bothered to get these tests running under Python 2.7
-@pytest.mark.skipif("sys.version_info < (3,)")
-def test_model_write():
-    fp = io.StringIO()
+def test_model_write(tmpdir):
+    path = str(tmpdir.join("model_write.json"))
     m = fictionary.Model()
     m.feed("table")
-    m.write(fp)
+    with codecs.open(path, "w", encoding="utf-8") as fp:
+        m.write(fp)
 
-    j = json.loads(fp.getvalue())
+    with codecs.open(path, "r", encoding="utf-8") as fp:
+        j = json.load(fp)
     assert j["ver"] == 1
     assert j["markov"] == {
         ",": {"t": 1},
@@ -83,25 +83,26 @@ def test_model_write():
     }
 
 
-# Honestly couldn't be bothered to get these tests running under Python 2.7
-@pytest.mark.skipif("sys.version_info < (3,)")
-def test_incorrect_ver():
-    fp = io.StringIO(
-        json.dumps(
-            {
-                "ver": 399,
-                "markov": {
-                    ",": {"t": 1},
-                    ",t": {"a": 1},
-                    "t,a": {"b": 1},
-                    "a,b": {"l": 1},
-                    "b,l": {"e": 1},
-                    "l,e": {"": 1},
-                },
-            }
+def test_incorrect_ver(tmpdir):
+    path = str(tmpdir.join("incorrect_ver.json"))
+    with codecs.open(path, "w", encoding="utf-8") as fp:
+        fp.write(
+            json.dumps(
+                {
+                    "ver": 399,
+                    "markov": {
+                        ",": {"t": 1},
+                        ",t": {"a": 1},
+                        "t,a": {"b": 1},
+                        "a,b": {"l": 1},
+                        "b,l": {"e": 1},
+                        "l,e": {"": 1},
+                    },
+                }
+            )
         )
-    )
 
     m = fictionary.Model()
     with pytest.raises(fictionary.FileVersionError) as fe:
-        m.read(fp)
+        with codecs.open(path, "r", encoding="utf-8") as fp:
+            m.read(fp)

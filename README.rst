@@ -37,6 +37,20 @@ You can learn how to use fictionary as a command-line tool by running `fictionar
                             The dictionary rules to follow: american, british, or
                             all
 
+Running it looks a little like this::
+
+    $ fictionary
+    nivenver
+
+    $ fictionary -c 4
+    cest
+    colped
+    burpen
+    flumat
+
+Library Usage
+~~~~~~~~~~~~~
+
 And you can also use it as a library:
 
     >>> import fictionary
@@ -51,12 +65,13 @@ And if you want to create your own models::
     m.feed('table')
     m.feed('babel')
 
-    # Now we can generate words! (This model is capable of only 2 fictional words)
+    # Now we can generate words!
+    # (This model is capable of only 2 fictional words)
     print(m.random_word(5, 5)) # tabel
     print(m.random_word(5, 5)) # bable
 
-    # If you're building a model with *lots* of words, generating the model can be slow, so
-    # you can save the generated model to a json file:
+    # If you're building a model with *lots* of words, generating the model
+    # can be slow, so you can save the generated model to a json file:
     with open('my-fictionary-dict.json', 'w', encoding='utf-8') as fp:
         m.write(fp)
 
@@ -65,6 +80,7 @@ And if you want to create your own models::
     new_model = fictionary.Model(words=['table', 'babel'])
     with open('my-fictionary-dict.json', 'r', encoding='utf-8') as fp:
         new_model.read(fp)
+    print(m.random_word(5, 5)) # bable
 
 Why???
 ------
@@ -74,32 +90,6 @@ length passwords, although I'm not sure how secure those passwords would be
 given that they follow well-defined patterns. One day I might sit down and
 work it out.
 
-What Should I Expect To See
----------------------------
-
-The results are random, but you should see something like the following::
-
-    $ fictionary.py --count 20 --min-length 5
-    prodybating
-    awbalemisfrewhic
-    billars
-    rotous
-    fratorgater
-    incens
-    cradpantle
-    gatinspon
-    intneshemblary
-    clumake
-    pladrachoppedally
-    fuledi
-    pheable
-    frilita
-    sederels
-    hippostaligarupyrrelised
-    haridisuppechooge
-    turefurnic
-    butermel
-    amblier
 
 How it Works
 ------------
@@ -107,7 +97,16 @@ How it Works
 When it runs, fictionary loads a data structure
 called a Markov chain, which represents the patterns of letters found in the
 words in the dictionary (e.g. The most common first-letter is 's'. The most common letter
-following 's' at the start of a word is 't' etc.)
+following 's' at the start of a word is 't' etc.). Fictionary is supplied
+with 3 models out of the box:
+
+=========== ===============================================================
+Model       Description
+=========== ===============================================================
+all         Includes all words is both british and american wordlists.
+american    Includes English words, using American spelling.
+british     Includes English words, using British spelling.
+=========== ===============================================================
 
 Once fictionary understands the patterns of letters used in words in the
 English language, it can use these rules to generate new, nonsense words that
