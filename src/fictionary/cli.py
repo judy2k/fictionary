@@ -27,7 +27,7 @@ def main(argv=sys.argv[1:]):
             "--count",
             type=int,
             default=DEFAULT_NUM_WORDS,
-            help="The number of words to make_model.",
+            help="The number of words to create.",
         )
         parser.add_argument(
             "-m",

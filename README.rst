@@ -28,7 +28,7 @@ You can learn how to use fictionary as a command-line tool by running `fictionar
       -h, --help            show this help message and exit
       -v, --verbose         Be verbose.
       -c COUNT, --count COUNT
-                            The number of words to make_model.
+                            The number of words to create.
       -m LENGTH, --min-length LENGTH
                             Only make_model words of LENGTH chars or longer.
       -x LENGTH, --max-length LENGTH
