@@ -1,2 +1,12 @@
 include *.rst
-include fictionary/ispell_wordlist/*
+include *.yaml
+include .bumpversion.cfg
+include .coveragerc
+include Makefile
+include Pipfile
+include Pipfile.lock
+include ispell_wordlist/*
+include requirements.txt
+include tox.ini
+recursive-include tests *.py
+recursive-include util *
