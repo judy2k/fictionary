@@ -2,8 +2,6 @@ import fictionary.markov
 import mock
 import pytest
 
-import fictionary
-
 
 def test_weighted():
     # Mock out randint, because py2 & py3 make_model different sequences for the

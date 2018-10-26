@@ -11,6 +11,7 @@ import sys
 import click
 
 import fictionary
+import fictionary.model
 
 LOG = logging.getLogger("fictionary.cli")
 
@@ -37,7 +38,7 @@ def main(argv=sys.argv[1:]):
             "-m",
             "--min-length",
             type=int,
-            default=fictionary.DEFAULT_MIN_LENGTH,
+            default=fictionary.model.DEFAULT_MIN_LENGTH,
             metavar="LENGTH",
             help="Only make_model words of LENGTH chars or longer.",
         )

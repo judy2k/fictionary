@@ -7,48 +7,19 @@
 from __future__ import print_function, unicode_literals
 
 import importlib
-import json
 import logging
 
-from fictionary.markov import Markov
+from fictionary.model import DEFAULT_MIN_LENGTH, DEFAULT_MAX_LENGTH
+import fictionary.models
 
 APP_NAME = "fictionary"
 DEFAULT_NUM_WORDS = 1
-DEFAULT_MIN_LENGTH = 4
-DEFAULT_MAX_LENGTH = None
 
 DICT_ALL_KEY = "all"
 DICT_BRITISH_KEY = "british"
 DICT_AMERICAN_KEY = "american"
 
 LOG = logging.getLogger("fictionary")
-
-
-class Model(object):
-    def __init__(self, markov_data=None, words=None):
-        self._markov = Markov(markov_data) if markov_data is not None else Markov()
-        self._words = words if words is not None else set()
-
-    def feed(self, word):
-        self._words.add(word)
-        self._markov.feed(word)
-
-    def is_real_word(self, word):
-        return word in self._words
-
-    def random_word(self, min_length=DEFAULT_MIN_LENGTH, max_length=DEFAULT_MAX_LENGTH):
-        real_word_filter = lambda w: not self.is_real_word("".join(w))
-        return str(
-            "".join(
-                self._markov.random_sequence(min_length, max_length, real_word_filter)
-            )
-        )
-
-    def to_json(self):
-        return {"ver": 1, "markov": self._markov.to_json()}
-
-    def write(self, fp):
-        json.dump(self.to_json(), fp)
 
 
 def get_random_words(
@@ -61,8 +32,8 @@ def get_random_words(
 
     Call this function to use fictionary from any other Python code.
     """
-    mod = importlib.import_module("fictionary.models." + dictionary)
+    mod = getattr(fictionary.models, dictionary)
     return [
-        mod.model.random_word(min_length=min_length, max_length=max_length)
+        mod.random_word(min_length=min_length, max_length=max_length)
         for _ in range(num_words)
     ]

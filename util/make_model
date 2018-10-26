@@ -4,6 +4,7 @@ from argparse import ArgumentParser, FileType
 import sys
 
 import fictionary
+import fictionary.model
 
 
 def create_model(files):
@@ -16,7 +17,7 @@ def create_model(files):
     capital letter or containing an apostrophe will be rejected. Each word
     is fed into a Markov object as a sequence of characters.
     """
-    model = fictionary.Model()
+    model = fictionary.model.Model()
     for path in files:
         for line in open(path, encoding='utf-8'):
             word = line.strip()
@@ -32,7 +33,7 @@ def main(argv=sys.argv[1:]):
 
     args = ap.parse_args(argv)
 
-    model = fictionary.Model()
+    model = fictionary.model.Model()
     for path in args.input:
         with open(path, encoding='utf-8') as fin:
             for line in fin:
