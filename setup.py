@@ -11,7 +11,7 @@ with io.open(path.join(this_directory, "README.rst"), encoding="utf-8") as fp:
 
 setup(
     name="fictionary",
-    version="0.0.4",
+    version="0.1.0",
     description="Generate made-up words following the patterns used by real"
     " English words.",
     long_description=long_description,
