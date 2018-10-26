@@ -53,13 +53,15 @@ Library Usage
 
 And you can also use it as a library:
 
-    >>> import fictionary
+>>> import fictionary
 
-    >>> fictionary.word()
-    'regagreagised'
+>>> fictionary.word()
+'regagreagised'
 
-And if you want to create your own models::
-    .. code-block:: python
+And if you want to create your own models:
+
+.. code-block:: python
+
     # Create a model and add a couple of words to it:
     m = fictionary.Model()
     m.feed('table')
