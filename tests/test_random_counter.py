@@ -15,8 +15,8 @@ def test_weighted():
 def test_unweighted():
     # Mock out randint, because py2 & py3 make_model different sequences for the
     # same seed:
-    with mock.patch("random.choice") as randint_mock:
-        randint_mock.side_effect = "ababab"
+    with mock.patch("random.choice") as randchoice_mock:
+        randchoice_mock.side_effect = "ababab"
         rc = fictionary.markov.RandomCounter("aaaaaaaaaaaaab")
         assert [rc.random_choice(weighted=False) for i in range(6)] == list("ababab")
 

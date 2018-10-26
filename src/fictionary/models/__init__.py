@@ -1,3 +1,4 @@
+import codecs
 from os.path import dirname, join
 
 from fictionary.model import Model
@@ -10,7 +11,7 @@ _words = None
 def get_words():
     global _words
     if _words is None:
-        with open(join(DATADIR, "words.txt"), "r", encoding="utf-8") as fp:
+        with codecs.open(join(DATADIR, "words.txt"), "r", encoding="utf-8") as fp:
             _words = set(w.strip() for w in fp.readlines())
     return _words
 
@@ -23,7 +24,7 @@ class LazyModel(object):
     def __getattr__(self, name):
         if self._model is None:
             self._model = Model()
-            with open(self._path, "r", encoding="utf-8") as fp:
+            with codecs.open(self._path, "r", encoding="utf-8") as fp:
                 self._model.read(fp)
                 self._model._words = get_words()
         return getattr(self._model, name)

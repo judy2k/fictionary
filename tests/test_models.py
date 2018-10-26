@@ -1,3 +1,4 @@
+import codecs
 import logging
 from os.path import dirname, join
 
@@ -11,7 +12,7 @@ import fictionary.models
 def test_load_model():
     path = join(dirname(fictionary.models.__file__), "all.txt")
     m = fictionary.model.Model()
-    with open(path, "r", encoding="utf-8") as fp:
+    with codecs.open(path, "r", encoding="utf-8") as fp:
         m.read(fp)
     assert m.random_word() is not None
 
@@ -34,3 +35,26 @@ def test_is_real_word():
 
     assert am.is_real_word("xxxxxx") is False
     assert am.is_real_word("beclamour") is True
+
+
+def test_model_feed():
+    m = fictionary.model.Model()
+    m.feed("table")
+    m.feed("babel")
+    assert m.is_real_word("table")
+    assert "tabel" in {m.random_word(5, 5) for _ in range(100)}
+
+
+def test_model_to_json():
+    m = fictionary.model.Model()
+    m.feed("table")
+    j = m.to_json()
+    assert j["ver"] == 1
+    assert j["markov"] == {
+        ",": {"t": 1},
+        ",t": {"a": 1},
+        "t,a": {"b": 1},
+        "a,b": {"l": 1},
+        "b,l": {"e": 1},
+        "l,e": {"": 1},
+    }
