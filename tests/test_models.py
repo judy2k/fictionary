@@ -1,5 +1,4 @@
 import codecs
-import io
 import json
 import logging
 from os.path import dirname, join
