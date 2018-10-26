@@ -17,19 +17,9 @@ def test_getitem():
     import fictionary.models.american as am
 
     print(am.model._markov.data[("x", "u")])
-    assert list(am.model._markov.data[("x", "u")].keys()) == [
-        "a",
-        "r",
-        "l",
-        "s",
-        "d",
-        "b",
-        "v",
-        "p",
-        "o",
-        "m",
-        "t",
-    ]
+    assert set(am.model._markov.data[("x", "u")].keys()) == set(
+        ["a", "r", "l", "s", "d", "b", "v", "p", "o", "m", "t"]
+    )
 
 
 def test_is_real_word():

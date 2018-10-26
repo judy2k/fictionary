@@ -109,8 +109,7 @@ class Markov(object):
                 )
                 return result
         raise Exception(
-            "Couldn't find a valid word in 1000 iterations - "
-            "it looks like something is wrong!"
+            "Couldn't find a valid word in 1000 iterations - it looks like something is wrong!"
         )
 
     def random_sequence_generator(self):
