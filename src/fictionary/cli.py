@@ -5,19 +5,14 @@ from __future__ import print_function, unicode_literals
 
 import argparse
 import logging
-import os.path
 import sys
-
-import click
 
 import fictionary
 import fictionary.model
 
 LOG = logging.getLogger("fictionary.cli")
 
-# Where to save the generated data file:
-
-DATA_FILE_ROOT = click.get_app_dir(fictionary.APP_NAME)
+DEFAULT_NUM_WORDS = 1
 
 
 def main(argv=sys.argv[1:]):
@@ -31,7 +26,7 @@ def main(argv=sys.argv[1:]):
             "-c",
             "--count",
             type=int,
-            default=fictionary.DEFAULT_NUM_WORDS,
+            default=DEFAULT_NUM_WORDS,
             help="The number of words to make_model.",
         )
         parser.add_argument(
@@ -54,6 +49,11 @@ def main(argv=sys.argv[1:]):
             "-d",
             "--dictionary",
             default=fictionary.DICT_BRITISH_KEY,
+            choices=[
+                fictionary.DICT_ALL_KEY,
+                fictionary.DICT_AMERICAN_KEY,
+                fictionary.DICT_BRITISH_KEY,
+            ],
             help="The dictionary rules to follow: american, british, or all",
         )
 

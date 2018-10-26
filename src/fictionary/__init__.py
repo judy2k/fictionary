@@ -6,14 +6,12 @@
 
 from __future__ import print_function, unicode_literals
 
-import importlib
 import logging
 
-from fictionary.model import DEFAULT_MIN_LENGTH, DEFAULT_MAX_LENGTH
+from fictionary.model import DEFAULT_MIN_LENGTH, DEFAULT_MAX_LENGTH, Model
 import fictionary.models
 
-APP_NAME = "fictionary"
-DEFAULT_NUM_WORDS = 1
+__all__ = ["Model", "get_random_word", "get_random_words"]
 
 DICT_ALL_KEY = "all"
 DICT_BRITISH_KEY = "british"
@@ -22,13 +20,23 @@ DICT_AMERICAN_KEY = "american"
 LOG = logging.getLogger("fictionary")
 
 
-def get_random_words(
-    num_words=DEFAULT_NUM_WORDS,
+def get_random_word(
     min_length=DEFAULT_MIN_LENGTH,
     max_length=DEFAULT_MAX_LENGTH,
     dictionary=DICT_BRITISH_KEY,
 ):
-    """Get a random sequence of fictionary words.
+    """ Generate a single random fictionary word."""
+    mod = getattr(fictionary.models, dictionary)
+    return mod.random_word(min_length=min_length, max_length=max_length)
+
+
+def get_random_words(
+    num_words,
+    min_length=DEFAULT_MIN_LENGTH,
+    max_length=DEFAULT_MAX_LENGTH,
+    dictionary=DICT_BRITISH_KEY,
+):
+    """ Generate a sequence of random fictionary words.
 
     Call this function to use fictionary from any other Python code.
     """

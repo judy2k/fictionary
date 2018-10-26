@@ -1,12 +1,11 @@
 import codecs
 import logging
 from os.path import dirname, join
+import fictionary.models
 
 logging.basicConfig(level=logging.DEBUG)
 
 LOG = logging.getLogger("fictionary.tests")
-
-import fictionary.models
 
 
 def test_load_model():
