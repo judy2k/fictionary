@@ -6,7 +6,7 @@ import fictionary
 
 
 def test_weighted():
-    # Mock out randint, because py2 & py3 generate different sequences for the
+    # Mock out randint, because py2 & py3 make_model different sequences for the
     # same seed:
     with mock.patch("random.randint") as randint_mock:
         randint_mock.side_effect = [6, 8, 5, 12, 0, 13]
@@ -15,7 +15,7 @@ def test_weighted():
 
 
 def test_unweighted():
-    # Mock out randint, because py2 & py3 generate different sequences for the
+    # Mock out randint, because py2 & py3 make_model different sequences for the
     # same seed:
     with mock.patch("random.choice") as randint_mock:
         randint_mock.side_effect = "ababab"

@@ -7,6 +7,7 @@
 from __future__ import print_function, unicode_literals
 
 import importlib
+import json
 import logging
 
 from io import StringIO
@@ -45,12 +46,11 @@ class Model(object):
             )
         )
 
-    def _code_repl(self):
-        result = StringIO()
-        result.write(
-            "Model(markov_data={markov_data!r})".format(markov_data=self._markov.data)
-        )
-        return result.getvalue()
+    def to_json(self):
+        return {"ver": 1, "markov": self._markov.to_json()}
+
+    def write(self, fp):
+        json.dump(self.to_json(), fp)
 
 
 def get_random_words(
@@ -64,4 +64,7 @@ def get_random_words(
     Call this function to use fictionary from any other Python code.
     """
     mod = importlib.import_module("fictionary.models." + dictionary)
-    return [mod.model.random_word() for _ in range(num_words)]
+    return [
+        mod.model.random_word(min_length=min_length, max_length=max_length)
+        for _ in range(num_words)
+    ]

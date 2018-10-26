@@ -31,7 +31,7 @@ def main(argv=sys.argv[1:]):
             "--count",
             type=int,
             default=fictionary.DEFAULT_NUM_WORDS,
-            help="The number of words to generate.",
+            help="The number of words to make_model.",
         )
         parser.add_argument(
             "-m",
@@ -39,7 +39,7 @@ def main(argv=sys.argv[1:]):
             type=int,
             default=fictionary.DEFAULT_MIN_LENGTH,
             metavar="LENGTH",
-            help="Only generate words of LENGTH chars or longer.",
+            help="Only make_model words of LENGTH chars or longer.",
         )
         parser.add_argument(
             "-x",
@@ -47,7 +47,7 @@ def main(argv=sys.argv[1:]):
             type=int,
             default=None,
             metavar="LENGTH",
-            help="Only generate words of LENGTH chars or shorter.",
+            help="Only make_model words of LENGTH chars or shorter.",
         )
         parser.add_argument(
             "-d",

@@ -70,8 +70,25 @@ class Markov(object):
                 yield next_token
                 key = (key[1], next_token)
 
-    def _raw_data(self):
-        return {k: dict(v) for k, v in self.data.items()}
+    @staticmethod
+    def _to_keystring(key):
+        return ",".join(c if c is not None else "" for c in key)
+
+    @staticmethod
+    def _from_keystring(key):
+        return tuple(c if c != "" else None for c in key.split(","))
+
+    def to_json(self):
+        return {self._to_keystring(k): v.to_json() for k, v in self.data.items()}
+
+    @classmethod
+    def from_json(cls, data):
+        return cls(
+            {
+                cls._from_keystring(k): RandomCounter.from_json(v)
+                for k, v in data.items()
+            }
+        )
 
 
 class RandomCounter(Counter):
@@ -109,3 +126,18 @@ class RandomCounter(Counter):
             return self.pick(random.randint(0, sum(self.values()) - 1))
         else:
             return random.choice(self.most_common())[0]
+
+    @staticmethod
+    def _to_keystring(k):
+        return k if k is not None else ""
+
+    @staticmethod
+    def _from_keystring(k):
+        return k if k != "" else None
+
+    def to_json(self):
+        return {self._to_keystring(k): v for k, v in self.items()}
+
+    @classmethod
+    def from_json(cls, j):
+        return cls({cls._from_keystring(k): v for k, v in j.items()})
