@@ -1,6 +1,6 @@
 import mock
 
-import fictionary
+import fictionary.cli
 
 
 def test_no_args():
